@@ -1,0 +1,144 @@
+version: '3.8'
+
+services:
+  # MySQL 数据库
+  mysql:
+    image: mysql:8.0
+    container_name: fast-admin-mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root123456}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-fastapiwebadmin}
+      MYSQL_USER: ${MYSQL_USER:-admin}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-admin123456}
+      TZ: Asia/Shanghai
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./backend/script/db_init.sql:/docker-entrypoint-initdb.d/init.sql
+    command: 
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+      - --default-authentication-plugin=mysql_native_password
+    networks:
+      - fast-admin-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Redis 缓存
+  redis:
+    image: redis:6.0-alpine
+    container_name: fast-admin-redis
+    restart: always
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes
+    networks:
+      - fast-admin-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # 后端服务
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: fast-admin-backend
+    restart: always
+    ports:
+      - "8100:8100"
+    environment:
+      - REDIS_URI=redis://redis:6379/4
+      - MYSQL_DATABASE_URI=mysql+asyncmy://${MYSQL_USER:-admin}:${MYSQL_PASSWORD:-admin123456}@mysql:3306/${MYSQL_DATABASE:-fastapiwebadmin}?charset=UTF8MB4
+      - CELERY_BROKER_URL=redis://redis:6379/5
+      - CELERY_RESULT_BACKEND=redis://redis:6379/5
+      - CELERY_BEAT_DB_URL=mysql+pymysql://${MYSQL_USER:-admin}:${MYSQL_PASSWORD:-admin123456}@mysql:3306/${MYSQL_DATABASE:-fastapiwebadmin}?charset=UTF8MB4
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - fast-admin-network
+    volumes:
+      - ./backend/logs:/app/logs
+      - ./backend/files:/app/files
+
+  # Celery Worker
+  celery-worker:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: fast-admin-celery-worker
+    restart: always
+    command: celery -A celery_worker.worker.celery worker --loglevel=INFO -c 10
+    environment:
+      - REDIS_URI=redis://redis:6379/4
+      - MYSQL_DATABASE_URI=mysql+asyncmy://${MYSQL_USER:-admin}:${MYSQL_PASSWORD:-admin123456}@mysql:3306/${MYSQL_DATABASE:-fastapiwebadmin}?charset=UTF8MB4
+      - CELERY_BROKER_URL=redis://redis:6379/5
+      - CELERY_RESULT_BACKEND=redis://redis:6379/5
+    depends_on:
+      - redis
+      - mysql
+      - backend
+    networks:
+      - fast-admin-network
+    volumes:
+      - ./backend/logs:/app/logs
+      - ./backend/files:/app/files
+
+  # Celery Beat
+  celery-beat:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: fast-admin-celery-beat
+    restart: always
+    command: celery -A celery_worker.worker.celery beat -S celery_worker.scheduler.schedulers:DatabaseScheduler -l INFO
+    environment:
+      - REDIS_URI=redis://redis:6379/4
+      - MYSQL_DATABASE_URI=mysql+asyncmy://${MYSQL_USER:-admin}:${MYSQL_PASSWORD:-admin123456}@mysql:3306/${MYSQL_DATABASE:-fastapiwebadmin}?charset=UTF8MB4
+      - CELERY_BROKER_URL=redis://redis:6379/5
+      - CELERY_RESULT_BACKEND=redis://redis:6379/5
+      - CELERY_BEAT_DB_URL=mysql+pymysql://${MYSQL_USER:-admin}:${MYSQL_PASSWORD:-admin123456}@mysql:3306/${MYSQL_DATABASE:-fastapiwebadmin}?charset=UTF8MB4
+    depends_on:
+      - redis
+      - mysql
+      - backend
+    networks:
+      - fast-admin-network
+    volumes:
+      - ./backend/logs:/app/logs
+
+  # 前端服务
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: fast-admin-frontend
+    restart: always
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    networks:
+      - fast-admin-network
+
+networks:
+  fast-admin-network:
+    driver: bridge
+
+volumes:
+  mysql_data:
+    driver: local
+  redis_data:
+    driver: local
