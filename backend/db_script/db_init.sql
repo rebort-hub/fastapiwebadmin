@@ -11,7 +11,7 @@
  Target Server Version : 80042 (8.0.42)
  File Encoding         : 65001
 
- Date: 17/01/2026 10:08:06
+ Date: 17/01/2026 13:43:02
 */
 
 SET NAMES utf8mb4;
@@ -24,10 +24,147 @@ DROP TABLE IF EXISTS `alembic_version`;
 CREATE TABLE `alembic_version`  (
   `version_num` varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
   PRIMARY KEY (`version_num`) USING BTREE
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of alembic_version
+-- ----------------------------
+
+-- ----------------------------
+-- Table structure for celery_crontab_schedule
+-- ----------------------------
+DROP TABLE IF EXISTS `celery_crontab_schedule`;
+CREATE TABLE `celery_crontab_schedule`  (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `minute` varchar(240) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL,
+  `hour` varchar(96) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL,
+  `day_of_week` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL,
+  `day_of_month` varchar(124) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL,
+  `month_of_year` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL,
+  `timezone` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL,
+  `creation_date` datetime NULL DEFAULT NULL,
+  `updation_date` datetime NULL DEFAULT NULL,
+  `updated_by` int NULL DEFAULT NULL,
+  `created_by` int NULL DEFAULT NULL,
+  `enabled_flag` int NULL DEFAULT NULL,
+  `trace_id` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT 'trace_id',
+  PRIMARY KEY (`id`) USING BTREE
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = DYNAMIC;
+
+-- ----------------------------
+-- Records of celery_crontab_schedule
+-- ----------------------------
+
+-- ----------------------------
+-- Table structure for celery_interval_schedule
+-- ----------------------------
+DROP TABLE IF EXISTS `celery_interval_schedule`;
+CREATE TABLE `celery_interval_schedule`  (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `every` int NOT NULL,
+  `period` varchar(24) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL,
+  `creation_date` datetime NULL DEFAULT NULL,
+  `updation_date` datetime NULL DEFAULT NULL,
+  `updated_by` int NULL DEFAULT NULL,
+  `created_by` int NULL DEFAULT NULL,
+  `enabled_flag` int NULL DEFAULT NULL,
+  `trace_id` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT 'trace_id',
+  PRIMARY KEY (`id`) USING BTREE
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = DYNAMIC;
+
+-- ----------------------------
+-- Records of celery_interval_schedule
+-- ----------------------------
+
+-- ----------------------------
+-- Table structure for celery_periodic_task
+-- ----------------------------
+DROP TABLE IF EXISTS `celery_periodic_task`;
+CREATE TABLE `celery_periodic_task`  (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL,
+  `task` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL,
+  `interval_id` int NULL DEFAULT NULL,
+  `crontab` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL,
+  `crontab_id` int NULL DEFAULT NULL,
+  `solar_id` int NULL DEFAULT NULL,
+  `args` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL,
+  `kwargs` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL,
+  `queue` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL,
+  `exchange` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL,
+  `routing_key` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL,
+  `priority` int NULL DEFAULT NULL,
+  `expires` datetime NULL DEFAULT NULL,
+  `one_off` tinyint(1) NULL DEFAULT NULL,
+  `start_time` datetime NULL DEFAULT NULL,
+  `enabled` tinyint(1) NULL DEFAULT NULL,
+  `last_run_at` datetime NULL DEFAULT NULL,
+  `total_run_count` int NULL DEFAULT NULL,
+  `date_changed` datetime NULL DEFAULT NULL,
+  `description` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL,
+  `run_type` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL,
+  `project_id` int NULL DEFAULT NULL,
+  `module_id` int NULL DEFAULT NULL,
+  `suite_id` int NULL DEFAULT NULL,
+  `case_ids` varchar(500) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL,
+  `ui_env_id` int NULL DEFAULT NULL,
+  `ui_ids` varchar(500) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL,
+  `script_ids` varchar(500) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL,
+  `creation_date` datetime NULL DEFAULT NULL,
+  `updation_date` datetime NULL DEFAULT NULL,
+  `updated_by` int NULL DEFAULT NULL,
+  `created_by` int NULL DEFAULT NULL,
+  `enabled_flag` int NULL DEFAULT NULL,
+  `run_mode` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL,
+  `trace_id` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT 'trace_id',
+  `task_type` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL COMMENT 'crontab interval',
+  `case_env_id` int NULL DEFAULT NULL,
+  `interval_every` int NULL DEFAULT NULL,
+  `interval_period` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL,
+  `task_tags` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL,
+  `remarks` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL,
+  PRIMARY KEY (`id`) USING BTREE,
+  UNIQUE INDEX `name`(`name` ASC) USING BTREE
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = DYNAMIC;
+
+-- ----------------------------
+-- Records of celery_periodic_task
+-- ----------------------------
+
+-- ----------------------------
+-- Table structure for celery_periodic_task_changed
+-- ----------------------------
+DROP TABLE IF EXISTS `celery_periodic_task_changed`;
+CREATE TABLE `celery_periodic_task_changed`  (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `last_update` datetime NOT NULL,
+  `trace_id` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT 'trace_id',
+  `creation_date` datetime NULL DEFAULT NULL,
+  `updation_date` datetime NULL DEFAULT NULL,
+  `updated_by` int NULL DEFAULT NULL,
+  `created_by` int NULL DEFAULT NULL,
+  `enabled_flag` int NULL DEFAULT NULL,
+  PRIMARY KEY (`id`) USING BTREE
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = DYNAMIC;
+
+-- ----------------------------
+-- Records of celery_periodic_task_changed
+-- ----------------------------
+
+-- ----------------------------
+-- Table structure for celery_solar_schedule
+-- ----------------------------
+DROP TABLE IF EXISTS `celery_solar_schedule`;
+CREATE TABLE `celery_solar_schedule`  (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `event` varchar(24) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL,
+  `latitude` float NULL DEFAULT NULL,
+  `longitude` float NULL DEFAULT NULL,
+  PRIMARY KEY (`id`) USING BTREE
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = DYNAMIC;
+
+-- ----------------------------
+-- Records of celery_solar_schedule
 -- ----------------------------
 
 -- ----------------------------
@@ -58,6 +195,7 @@ CREATE TABLE `file_info`  (
 INSERT INTO `file_info` VALUES ('F51B4326B6D0407983554423DCE972C8.jpg', 'E:\\Fastapi\\vue-fastapi-admin\\files\\F51B4326B6D0407983554423DCE972C8.jpg', 'jpg', '-6-DCMQ5wwoxwOqF6lMIUb6iQNrxTmwA-FZVAcW30-c92faX8g0k5ubYfWaN-I9A.jpg', 'image/jpeg', '186.34', '061dd63997df4a7bb13d735f5a2cf05c', '2026-01-16 15:22:53', NULL, '2026-01-16 15:22:59', 1, 0, NULL);
 INSERT INTO `file_info` VALUES ('31C6707CF1D54E0A99487A65DB17E370.jpg', 'E:\\Fastapi\\vue-fastapi-admin\\files\\31C6707CF1D54E0A99487A65DB17E370.jpg', 'jpg', '-6-DCMQ5wwoxwOqF6lMIUb6iQNrxTmwA-FZVAcW30-c92faX8g0k5ubYfWaN-I9A.jpg', 'image/jpeg', '186.34', '4a771652454343558e7ed1f0704f59d1', '2026-01-16 12:12:30', NULL, '2026-01-16 12:26:43', NULL, 0, NULL);
 INSERT INTO `file_info` VALUES ('198C2B29FB1444439E4362E68E82FFCA.jpg', 'E:\\Fastapi\\vue-fastapi-admin\\files\\198C2B29FB1444439E4362E68E82FFCA.jpg', 'jpg', '-6-DCMQ5wwoxwOqF6lMIUb6iQNrxTmwA-FZVAcW30-c92faX8g0k5ubYfWaN-I9A.jpg', 'image/jpeg', '186.34', '93fa14e2c158444382168018c0c025de', '2026-01-16 12:28:50', NULL, '2026-01-16 12:28:59', NULL, 0, NULL);
+INSERT INTO `file_info` VALUES ('46ACB2BD630F4FBE9F68DDE8D0FD7FA2.jpg', 'E:\\Fastapi\\vue-fastapi-admin\\files\\46ACB2BD630F4FBE9F68DDE8D0FD7FA2.jpg', 'jpg', '-6-DCMQ5wwoxwOqF6lMIUb6iQNrxTmwA-FZVAcW30-c92faX8g0k5ubYfWaN-I9A.jpg', 'image/jpeg', '186.34', 'b3ebbadce5e247d8a1fdd12f9d89ba25', '2026-01-17 11:26:39', NULL, '2026-01-17 11:26:43', 1, 0, NULL);
 INSERT INTO `file_info` VALUES ('1C1B585E26F74A1ABC53757099D61CE5.jpg', 'E:\\Fastapi\\vue-fastapi-admin\\files\\1C1B585E26F74A1ABC53757099D61CE5.jpg', 'jpg', '-6-DCMQ5wwoxwOqF6lMIUb6iQNrxTmwA-FZVAcW30-c92faX8g0k5ubYfWaN-I9A.jpg', 'image/jpeg', '186.34', 'c079999b055f4f989694995183c95a54', '2026-01-16 12:27:21', NULL, '2026-01-16 12:27:32', NULL, 0, NULL);
 INSERT INTO `file_info` VALUES ('E86CDB83580F40C78FCC1D20226B6CA3.txt', 'E:\\Fastapi\\vue-fastapi-admin\\files\\E86CDB83580F40C78FCC1D20226B6CA3.txt', 'txt', '备份原始nginx.txt', 'text/plain', '2.64', 'ccf0413ff6794a26a1c145241fe22e12', '2026-01-16 12:29:23', NULL, '2026-01-16 12:29:27', NULL, 0, NULL);
 INSERT INTO `file_info` VALUES ('072B37FA703F4431B13B61779AB4C865.zip', 'E:\\Fastapi\\vue-fastapi-admin\\files\\072B37FA703F4431B13B61779AB4C865.zip', 'zip', 'chromedriver-win64.zip', 'application/x-zip-compressed', '9442.16', 'dd16a38e5f37436e9b5d8e656ed2a562', '2026-01-16 12:29:45', NULL, '2026-01-16 12:29:50', NULL, 0, NULL);
@@ -83,11 +221,11 @@ CREATE TABLE `lookup`  (
 -- ----------------------------
 -- Records of lookup
 -- ----------------------------
-INSERT INTO `lookup` VALUES (3, 'api_report_run_type', '测试报告执行类型', '2022-05-04 12:48:38', '2026-01-16 14:04:19', 1, 7, 7, NULL);
-INSERT INTO `lookup` VALUES (4, 'api_report_run_mode', '测试报告运行模式', '2022-05-04 14:29:45', '2026-01-16 14:04:17', 1, 7, 7, NULL);
-INSERT INTO `lookup` VALUES (5, 'api_timed_task_status', '定时任务运行状态', '2022-05-04 16:36:13', '2026-01-16 14:04:14', 1, 7, 7, NULL);
-INSERT INTO `lookup` VALUES (7, 'api_step_type', '用例类型', '2022-12-16 15:55:42', '2026-01-16 14:04:12', 1, 7, 7, NULL);
-INSERT INTO `lookup` VALUES (9, 'test', 'test', '2023-02-01 14:40:57', '2026-01-16 14:04:08', 1, 7, 7, NULL);
+INSERT INTO `lookup` VALUES (3, 'api_report_run_type', '测试报告执行类型', '2026-01-17 12:48:38', '2026-01-17 14:04:19', 1, 7, 7, NULL);
+INSERT INTO `lookup` VALUES (4, 'api_report_run_mode', '测试报告运行模式', '2026-01-17 14:29:45', '2026-01-17 14:04:17', 1, 7, 7, NULL);
+INSERT INTO `lookup` VALUES (5, 'api_timed_task_status', '定时任务运行状态', '2026-01-17 16:36:13', '2026-01-17 14:04:14', 1, 7, 7, NULL);
+INSERT INTO `lookup` VALUES (7, 'api_step_type', '用例类型', '2026-01-17 15:55:42', '2026-01-17 14:04:12', 1, 7, 7, NULL);
+INSERT INTO `lookup` VALUES (9, 'test', 'test', '2026-01-17 14:40:57', '2026-01-16 14:04:08', 1, 7, 7, NULL);
 
 -- ----------------------------
 -- Table structure for lookup_value
@@ -201,6 +339,28 @@ CREATE TABLE `menu_view_history`  (
 -- ----------------------------
 
 -- ----------------------------
+-- Table structure for module_info
+-- ----------------------------
+DROP TABLE IF EXISTS `module_info`;
+CREATE TABLE `module_info`  (
+  `id` int NOT NULL AUTO_INCREMENT COMMENT '模块ID',
+  `name` varchar(100) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NOT NULL COMMENT '模块名称',
+  `project_id` int NOT NULL COMMENT '所属项目ID',
+  `description` text CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NULL COMMENT '模块描述',
+  `creation_date` datetime NULL DEFAULT NULL COMMENT '创建时间',
+  `created_by` bigint NULL DEFAULT NULL COMMENT '创建人ID',
+  `updation_date` datetime NULL DEFAULT NULL COMMENT '更新时间',
+  `updated_by` bigint NULL DEFAULT NULL COMMENT '更新人ID',
+  `enabled_flag` tinyint(1) NOT NULL COMMENT '是否删除, 0 删除 1 非删除',
+  `trace_id` varchar(255) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NULL DEFAULT NULL COMMENT 'trace_id',
+  PRIMARY KEY (`id`) USING BTREE
+) ENGINE = InnoDB CHARACTER SET = utf8mb3 COLLATE = utf8mb3_general_ci ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Records of module_info
+-- ----------------------------
+
+-- ----------------------------
 -- Table structure for notify
 -- ----------------------------
 DROP TABLE IF EXISTS `notify`;
@@ -219,10 +379,31 @@ CREATE TABLE `notify`  (
   `trace_id` varchar(255) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NULL DEFAULT NULL COMMENT 'trace_id',
   PRIMARY KEY (`id`) USING BTREE,
   INDEX `ix_notify_user_id`(`user_id` ASC) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb3 COLLATE = utf8mb3_general_ci ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb3 COLLATE = utf8mb3_general_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of notify
+-- ----------------------------
+
+-- ----------------------------
+-- Table structure for project_info
+-- ----------------------------
+DROP TABLE IF EXISTS `project_info`;
+CREATE TABLE `project_info`  (
+  `id` int NOT NULL AUTO_INCREMENT COMMENT '项目ID',
+  `name` varchar(100) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NOT NULL COMMENT '项目名称',
+  `description` text CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NULL COMMENT '项目描述',
+  `creation_date` datetime NULL DEFAULT NULL COMMENT '创建时间',
+  `created_by` bigint NULL DEFAULT NULL COMMENT '创建人ID',
+  `updation_date` datetime NULL DEFAULT NULL COMMENT '更新时间',
+  `updated_by` bigint NULL DEFAULT NULL COMMENT '更新人ID',
+  `enabled_flag` tinyint(1) NOT NULL COMMENT '是否删除, 0 删除 1 非删除',
+  `trace_id` varchar(255) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NULL DEFAULT NULL COMMENT 'trace_id',
+  PRIMARY KEY (`id`) USING BTREE
+) ENGINE = InnoDB CHARACTER SET = utf8mb3 COLLATE = utf8mb3_general_ci ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Records of project_info
 -- ----------------------------
 
 -- ----------------------------
@@ -277,7 +458,7 @@ CREATE TABLE `roles`  (
   `status` int NULL DEFAULT 10 COMMENT '角色状态 10 启用，20 禁用',
   `trace_id` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
   PRIMARY KEY (`id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 10 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 11 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of roles
@@ -290,6 +471,7 @@ INSERT INTO `roles` VALUES (6, '888', '888000', 10, '1,29,31,30,51,61,66,67,64,6
 INSERT INTO `roles` VALUES (7, '测试用的', '测试角色', 10, '1,29,31,30,51,61,66,67', '2026-01-16 14:30:01', '2026-01-16 15:50:56', 1, 1, 8, 10, NULL);
 INSERT INTO `roles` VALUES (8, '', '56576575', 10, '1', '2026-01-16 15:38:13', '2026-01-16 15:38:27', 0, 1, 1, 10, NULL);
 INSERT INTO `roles` VALUES (9, '', '888', 10, '73', '2026-01-16 15:48:58', '2026-01-16 15:49:02', 0, 1, 1, 10, NULL);
+INSERT INTO `roles` VALUES (10, '', '00000', 10, '1', '2026-01-17 11:25:58', '2026-01-17 11:26:02', 0, 1, 1, 10, NULL);
 
 -- ----------------------------
 -- Table structure for user
@@ -314,11 +496,11 @@ CREATE TABLE `user`  (
   `tags` json NULL COMMENT '用户标签',
   `trace_id` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT 'trace_id',
   PRIMARY KEY (`id`) USING BTREE,
+  INDEX `ix_user_username`(`username` ASC) USING BTREE,
   INDEX `ix_user_email`(`email` ASC) USING BTREE,
   INDEX `ix_user_password`(`password` ASC) USING BTREE,
-  INDEX `ix_user_username`(`username` ASC) USING BTREE,
   INDEX `id_index`(`id` ASC) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 13 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 14 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of user
@@ -327,9 +509,10 @@ INSERT INTO `user` VALUES ('2022-03-09 16:03:43', '2026-01-16 15:29:33', 1, 1, '
 INSERT INTO `user` VALUES (NULL, NULL, 1, 7, '系统', '', NULL, '[1]', '系统', 1, NULL, NULL, 10, NULL, NULL, NULL, NULL);
 INSERT INTO `user` VALUES ('2026-01-16 14:23:30', '2026-01-16 15:35:15', 0, 8, '测试', '$2b$12$s7ObGmH1k6Ysz00iSY3PjeIM6eHTN7YyOm2v.bIlLS3DdmfkrMsyO', '123@qq.com', '[6]', '测试', 1, 1, 1, 20, '55', NULL, 'null', NULL);
 INSERT INTO `user` VALUES ('2026-01-16 14:29:44', '2026-01-16 15:15:28', 1, 9, 'Rebort', '$2b$12$xhl6U7TG//2b/atUuV4nv.PT3rmD//iQHpManKD32h5OCrgj9GaxS', '', '[7]', '罗伯特', 1, 8, 9, 20, '99', NULL, '[7]', NULL);
-INSERT INTO `user` VALUES ('2026-01-16 14:47:21', '2026-01-16 17:36:54', 1, 10, 'win', '$2b$12$Q7bH0ZdsEpsre7AVEMmm9.BSz0u3SBDxopsmTr42USAWzqLHrThyG', '', '[7]', 'win', 0, 1, 10, 20, '', NULL, '[7]', NULL);
+INSERT INTO `user` VALUES ('2026-01-16 14:47:21', '2026-01-17 10:17:11', 1, 10, 'win', '$2b$12$Q7bH0ZdsEpsre7AVEMmm9.BSz0u3SBDxopsmTr42USAWzqLHrThyG', '', '[7]', 'win', 0, 1, 1, 20, '', NULL, '[7]', NULL);
 INSERT INTO `user` VALUES ('2026-01-16 15:06:33', '2026-01-16 15:35:09', 0, 11, '', '$2b$12$7RahItYSVT8ShS4S/trzAu9Rg9QhgkFMibhTcE0yfRwXJQpRhZjx2', '', 'null', '', NULL, 1, 1, NULL, '99', '', '[]', NULL);
 INSERT INTO `user` VALUES ('2026-01-16 15:53:02', '2026-01-16 15:53:07', 0, 12, '999', '$2b$12$b3YvbNj2K/orbbblZfULR.blp5UbpK79ZQ7sgMuaSpef6fn1Xc8ha', '', '[7]', '99', 1, 1, 1, 20, '', NULL, 'null', NULL);
+INSERT INTO `user` VALUES ('2026-01-17 11:26:10', '2026-01-17 11:26:14', 0, 13, '000', '$2b$12$Rld20qlzkj6c1TItCnyPquZuzoDa/jPt5XfRRd2mpWQjv73VP7kcy', '', '[1]', '000', 1, 1, 1, 20, '', NULL, 'null', NULL);
 
 -- ----------------------------
 -- Table structure for user_login_record
@@ -364,7 +547,7 @@ CREATE TABLE `user_login_record`  (
   INDEX `idx_login_record_ret_code`(`ret_code` ASC) USING BTREE,
   INDEX `idx_login_record_token`(`token` ASC) USING BTREE,
   INDEX `idx_login_record_code_logintime`(`code` ASC, `login_time` ASC) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 65 CHARACTER SET = utf8mb3 COLLATE = utf8mb3_general_ci ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 71 CHARACTER SET = utf8mb3 COLLATE = utf8mb3_general_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of user_login_record
@@ -433,5 +616,11 @@ INSERT INTO `user_login_record` VALUES (61, '825afbaf-7438-4ef5-9190-634fd77731b
 INSERT INTO `user_login_record` VALUES (62, '2300a1cb-fb9f-4559-b163-14ac7e7a7258', 'win', 10, 'win', NULL, 'password', '2026-01-16 17:26:52', '2026-01-16 17:47:09', '127.0.0.1', NULL, NULL, NULL, NULL, 1, '2026-01-16 17:26:52', '2026-01-16 17:47:09', '1', '1', NULL);
 INSERT INTO `user_login_record` VALUES (63, 'bb130ced-1a00-4116-9482-86c2d230a13a', 'admin', 1, 'admin', NULL, 'password', '2026-01-16 17:47:27', '2026-01-16 17:50:22', '127.0.0.1', NULL, NULL, NULL, NULL, 1, '2026-01-16 17:47:27', '2026-01-16 17:50:22', '10', '10', NULL);
 INSERT INTO `user_login_record` VALUES (64, '191d5c0a-4eba-4885-bec0-6fb6c6d59660', 'admin', 1, 'admin', NULL, 'password', '2026-01-16 17:55:16', '2026-01-16 17:55:31', '127.0.0.1', NULL, NULL, NULL, NULL, 1, '2026-01-16 17:55:16', '2026-01-16 17:55:30', '10', '10', NULL);
+INSERT INTO `user_login_record` VALUES (65, '06dc4c59-2e27-4e2e-87ab-fab3ed5525e1', 'admin', 1, 'admin', NULL, 'password', '2026-01-17 10:08:30', '2026-01-17 10:10:29', '127.0.0.1', NULL, NULL, NULL, NULL, 1, '2026-01-17 10:08:33', '2026-01-17 10:10:29', '10', '10', NULL);
+INSERT INTO `user_login_record` VALUES (66, 'e78954bd-9319-4579-89f3-dc62a5151fa7', 'admin', 1, 'admin', NULL, 'password', '2026-01-17 10:11:56', '2026-01-17 10:15:53', '127.0.0.1', NULL, NULL, NULL, NULL, 1, '2026-01-17 10:11:56', '2026-01-17 10:15:52', '10', '10', NULL);
+INSERT INTO `user_login_record` VALUES (67, 'ab6a43ae-6bc5-4a83-89ee-0cf1e6f868de', 'admin', 1, 'admin', NULL, 'password', '2026-01-17 10:16:21', '2026-01-17 10:18:23', '127.0.0.1', NULL, NULL, NULL, NULL, 1, '2026-01-17 10:16:21', '2026-01-17 10:18:23', '10', '10', NULL);
+INSERT INTO `user_login_record` VALUES (68, '84798048-02f4-4f4d-83fe-65f305dd94eb', 'admin', 1, 'admin', NULL, 'password', '2026-01-17 10:24:13', '2026-01-17 10:27:13', '127.0.0.1', NULL, NULL, NULL, NULL, 1, '2026-01-17 10:24:13', '2026-01-17 10:27:12', '10', '10', NULL);
+INSERT INTO `user_login_record` VALUES (69, '2d5ae53c-a407-472f-809d-e721901555c5', 'admin', 1, 'admin', NULL, 'password', '2026-01-17 10:29:53', NULL, '127.0.0.1', NULL, NULL, NULL, NULL, 1, '2026-01-17 10:29:53', '2026-01-17 10:29:53', '10', '10', NULL);
+INSERT INTO `user_login_record` VALUES (70, '183d89a9-db82-472e-92c7-2b3bcf3d90f3', 'admin', 1, 'admin', NULL, 'password', '2026-01-17 11:24:54', '2026-01-17 11:27:41', '127.0.0.1', NULL, NULL, NULL, NULL, 1, '2026-01-17 11:24:56', '2026-01-17 11:27:41', '10', '10', NULL);
 
 SET FOREIGN_KEY_CHECKS = 1;
