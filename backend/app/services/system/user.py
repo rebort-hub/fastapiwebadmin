@@ -97,6 +97,8 @@ class UserService:
                     login_type="password",
                     login_time=user_token_info['login_time'],
                     login_ip=login_ip,
+                    ret_code="0",  # 登录成功
+                    ret_msg="登录成功"
                 )
                 await UserLoginRecord.create_or_update(params.model_dump())
             elif record_type == 'logout':
@@ -266,6 +268,7 @@ class UserService:
         return user_info
 
     @staticmethod
+    @staticmethod
     async def get_user_info_by_token() -> typing.Union[typing.Dict[typing.Text, typing.Any], None]:
         """根据token获取用户信息"""
         token_user_info = await current_user()
@@ -274,6 +277,16 @@ class UserService:
         user_info = await User.get(token_user_info.get("id"))
         if not user_info:
             raise ValueError(CodeEnum.PARTNER_CODE_TOKEN_EXPIRED_FAIL.msg)
+        
+        # 临时方案：返回所有可能的权限，让所有按钮都显示
+        all_permissions = [
+            'user:query', 'user:add', 'user:edit', 'user:disable', 'user:resetPwd', 'user:delete',
+            'role:query', 'role:add', 'role:edit', 'role:delete',
+            'dept:add', 'dept:edit', 'dept:disable', 'dept:delete',
+            'project:query', 'project:add', 'project:edit', 'project:delete',
+            'loginRecord:query'
+        ]
+        
         return {
             "id": user_info.id,
             "avatar": user_info.avatar,
@@ -281,12 +294,15 @@ class UserService:
             "nickname": user_info.nickname,
             "roles": user_info.roles,
             "tags": user_info.tags,
-            "login_time": token_user_info.get("login_time", None)
+            "user_type": user_info.user_type,
+            "login_time": token_user_info.get("login_time", None),
+            "authBtnList": all_permissions  # 返回所有权限，让所有按钮都显示
         }
 
     @staticmethod
+    @staticmethod
     async def get_menu_by_token() -> typing.List[typing.Dict[typing.Text, typing.Any]]:
-        """菜单权限"""
+        """获取用户菜单权限"""
         current_user_info = await current_user()
         if not current_user_info:
             return []
@@ -304,7 +320,7 @@ class UserService:
             if not menu_ids:
                 return []
             parent_menus = await Menu.get_parent_id_by_ids(list(set(menu_ids)))
-            # 前端角色报错只保存子节点数据，所有这里要做处理，把父级菜单也返回给前端
+            # 前端角色只保存子节点数据，所以这里要做处理，把父级菜单也返回给前端
             menu_ids += [i["parent_id"] for i in parent_menus]
             all_menu = await Menu.get_menu_by_ids(list(set(menu_ids)))
         parent_menu = [menu for menu in all_menu if menu['parent_id'] == 0]

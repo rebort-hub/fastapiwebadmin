@@ -2,7 +2,7 @@
 # @author: rebort
 from fastapi import APIRouter
 
-from app.apis.system import user, menu, roles, lookup, id_center, file, health
+from app.apis.system import user, menu, roles, lookup, id_center, file, health, project, login_record, department
 
 app_router = APIRouter()
 
@@ -14,3 +14,6 @@ app_router.include_router(lookup.router, prefix="/lookup", tags=["数据字典"]
 app_router.include_router(id_center.router, prefix="/idCenter", tags=["ID中心"])
 app_router.include_router(file.router, prefix="/file", tags=["文件管理"])
 app_router.include_router(health.router, prefix="/health", tags=["健康检查"])
+app_router.include_router(project.router, prefix="/project", tags=["项目管理"])
+app_router.include_router(login_record.router, prefix="/loginRecord", tags=["登录记录"])
+app_router.include_router(department.router, prefix="/department", tags=["部门管理"])

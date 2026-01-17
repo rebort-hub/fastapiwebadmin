@@ -80,6 +80,7 @@ https://github.com/rebort-hub
   ![](static/img/cass.png)
 - 个人中心
   ![](static/img/ge.png)
+  ![](static/img/gen.png)
 - 主题自定义切换
   ![](static/img/csssb.png)
   ![](static/img/csssa.png)

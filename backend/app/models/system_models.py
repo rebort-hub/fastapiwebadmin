@@ -25,9 +25,12 @@ class User(Base):
     remarks = Column(String(255), nullable=False, comment='用户描述')
     avatar = Column(Text, nullable=False, comment='头像')
     tags = Column(JSON, nullable=False, comment='标签')
+    dept_id = Column(Integer, nullable=True, comment='部门ID')
 
     @classmethod
     async def get_list(cls, params: UserQuery):
+        from app.models.system_models import Department
+        
         q = [cls.enabled_flag == 1]
         if params.username:
             q.append(cls.username.like('%{}%'.format(params.username)))
@@ -35,11 +38,16 @@ class User(Base):
             q.append(cls.nickname.like('%{}%'.format(params.nickname)))
         if params.user_ids and isinstance(params.user_ids, list):
             q.append(cls.id.in_(params.user_ids))
-        # *[getattr(cls, c.name) for c in cls.__table__.columns]
+        
         u = aliased(User)
-        stmt = select(*cls.get_table_columns(), u.nickname.label("created_by_name")) \
-            .where(*q) \
+        d = aliased(Department)
+        stmt = select(
+            *cls.get_table_columns(), 
+            u.nickname.label("created_by_name"),
+            d.name.label("dept_name")
+        ).where(*q) \
             .outerjoin(u, u.id == cls.created_by) \
+            .outerjoin(d, d.id == cls.dept_id) \
             .order_by(cls.id.desc())
         return await cls.pagination(stmt)
 
@@ -57,6 +65,51 @@ class User(Base):
     async def get_user_by_nickname(cls, nickname: str):
         stmt = select(*cls.get_table_columns()).where(cls.nickname == nickname, cls.enabled_flag == 1)
         return await cls.get_result(stmt, True)
+
+
+class Department(Base):
+    """部门表"""
+    __tablename__ = 'department'
+
+    name = Column(String(100), nullable=False, comment='部门名称', index=True)
+    parent_id = Column(Integer, nullable=True, comment='父部门ID', default=0)
+    sort = Column(Integer, nullable=True, comment='排序', default=0)
+    status = Column(Integer, nullable=True, comment='状态 1启用 0禁用', default=1)
+    description = Column(String(500), nullable=True, comment='部门描述')
+
+    @classmethod
+    async def get_list(cls):
+        """获取所有部门列表"""
+        q = [cls.enabled_flag == 1]
+        u = aliased(User)
+        stmt = select(
+            *cls.get_table_columns(),
+            u.nickname.label("created_by_name"),
+            User.nickname.label("updated_by_name")
+        ).where(*q) \
+            .outerjoin(u, u.id == cls.created_by) \
+            .outerjoin(User, User.id == cls.updated_by) \
+            .order_by(cls.sort, cls.id)
+        result = await cls.get_result(stmt)
+        return result if result else []
+
+    @classmethod
+    async def get_by_name(cls, name: str, exclude_id: int = None):
+        """根据名称查询部门"""
+        q = [cls.name == name, cls.enabled_flag == 1]
+        if exclude_id:
+            q.append(cls.id != exclude_id)
+        stmt = select(*cls.get_table_columns()).where(*q)
+        return await cls.get_result(stmt, first=True)
+
+    @classmethod
+    async def get_children(cls, parent_id: int):
+        """获取子部门"""
+        stmt = select(*cls.get_table_columns()).where(
+            cls.parent_id == parent_id,
+            cls.enabled_flag == 1
+        )
+        return await cls.get_result(stmt)
 
 
 class Menu(Base):
@@ -86,19 +139,63 @@ class Menu(Base):
     @classmethod
     async def get_menu_by_ids(cls, ids: typing.List[int]):
         """获取菜单id"""
-        stmt = select(cls.get_table_columns()).where(cls.id.in_(ids), cls.enabled_flag == 1).order_by(cls.sort)
+        stmt = select(cls.get_table_columns()).where(
+            cls.id.in_(ids), 
+            cls.enabled_flag == 1
+        ).order_by(cls.sort)
+        return await cls.get_result(stmt)
+
+    @classmethod
+    async def get_menus_and_buttons_by_ids(cls, ids: typing.List[int]):
+        """获取菜单和按钮权限（包括所有类型）"""
+        stmt = select(cls.get_table_columns()).where(
+            cls.id.in_(ids), 
+            cls.enabled_flag == 1
+        ).order_by(cls.sort)
         return await cls.get_result(stmt)
 
     @classmethod
     async def get_menu_all(cls):
-        """获取菜单id"""
-        stmt = select(cls.get_table_columns()).where(cls.enabled_flag == 1).order_by(cls.sort)
+        """获取所有菜单"""
+        stmt = select(cls.get_table_columns()).where(
+            cls.enabled_flag == 1
+        ).order_by(cls.sort)
+        return await cls.get_result(stmt)
+
+    @classmethod
+    async def get_all_menus_with_buttons(cls):
+        """获取所有菜单（包括菜单和按钮，用于权限分配和管理）"""
+        stmt = select(cls.get_table_columns()).where(
+            cls.enabled_flag == 1
+        ).order_by(cls.sort)
+        return await cls.get_result(stmt)
+
+    @classmethod
+    async def get_all_buttons(cls):
+        """获取所有按钮权限"""
+        stmt = select(cls.get_table_columns()).where(
+            cls.enabled_flag == 1,
+            cls.menu_type == 20  # 只返回按钮类型
+        ).order_by(cls.sort)
+        return await cls.get_result(stmt)
+
+    @classmethod
+    async def get_buttons_by_ids(cls, ids: typing.List[int]):
+        """根据ID获取按钮权限"""
+        stmt = select(cls.get_table_columns()).where(
+            cls.id.in_(ids),
+            cls.enabled_flag == 1,
+            cls.menu_type == 20  # 只返回按钮类型
+        ).order_by(cls.sort)
         return await cls.get_result(stmt)
 
     @classmethod
     async def get_parent_id_by_ids(cls, ids: typing.List[int]):
         """根据子菜单id获取父级菜单id"""
-        stmt = select(cls.get_table_columns()).where(cls.id.in_(ids), cls.enabled_flag == 1).order_by(cls.sort)
+        stmt = select(cls.get_table_columns()).where(
+            cls.id.in_(ids), 
+            cls.enabled_flag == 1
+        ).order_by(cls.sort)
         return await cls.get_result(stmt)
 
     @classmethod
@@ -133,12 +230,15 @@ class Roles(Base):
 
     name = Column(String(64), nullable=True, comment='菜单名称', index=True)
     role_type = Column(Integer, nullable=False, comment='权限类型，10菜单权限，20用户组权限', index=True, default=10)
-    menus = Column(String(64), nullable=True, comment='菜单列表', index=True)
+    menus = Column(Text, nullable=True, comment='菜单列表', index=False)  # 改为Text类型，支持更长的权限列表
     description = Column(Integer, nullable=True, comment='描述')
     status = Column(Integer, nullable=True, comment='状态 10 启用 20 禁用', default=10)
+    dept_id = Column(Integer, nullable=True, comment='部门ID')
 
     @classmethod
     async def get_list(cls, params: RoleQuery):
+        from app.models.system_models import Department
+        
         q = [cls.enabled_flag == 1]
         if params.id:
             q.append(cls.id == params.id)
@@ -148,14 +248,22 @@ class Roles(Base):
             q.append(cls.role_type == params.role_type)
         else:
             q.append(cls.role_type == 10)
+        
         u = aliased(User)
-        stmt = select(cls.get_table_columns(),
-                      u.nickname.label("created_by_name"),
-                      User.nickname.label("updated_by_name")) \
-            .where(*q) \
+        d = aliased(Department)
+        
+        stmt = select(
+            *cls.get_table_columns(),
+            u.nickname.label("created_by_name"),
+            User.nickname.label("updated_by_name"),
+            d.name.label("dept_name")
+        ).where(*q) \
             .outerjoin(u, u.id == cls.created_by) \
             .outerjoin(User, User.id == cls.updated_by) \
+            .outerjoin(d, d.id == cls.dept_id) \
             .order_by(cls.id.desc())
+
+        return await cls.pagination(stmt)
 
         return await cls.pagination(stmt)
 
@@ -325,8 +433,10 @@ class UserLoginRecord(Base):
             q.append(cls.code.like('%{}%'.format(params.code)))
         if params.user_name:
             q.append(cls.user_name.like('%{}%'.format(params.user_name)))
+        if params.login_ip:
+            q.append(cls.login_ip.like('%{}%'.format(params.login_ip)))
         u = aliased(User)
-        stmt = select(cls) \
+        stmt = select(*cls.get_table_columns()) \
             .where(*q) \
             .outerjoin(u, u.id == cls.created_by) \
             .order_by(cls.id.desc())

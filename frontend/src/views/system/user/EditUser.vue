@@ -46,6 +46,21 @@
           </el-col>
 
           <el-col :xs="24" :sm="12" :md="12" :lg="12" :xl="12" class="mb20">
+            <el-form-item label="所属部门">
+              <el-tree-select
+                v-model="state.form.dept_id"
+                :data="state.deptTreeData"
+                :props="{ label: 'name', value: 'id' }"
+                placeholder="请选择所属部门"
+                clearable
+                check-strictly
+                :render-after-expand="false"
+                class="w100"
+              />
+            </el-form-item>
+          </el-col>
+
+          <el-col :xs="24" :sm="12" :md="12" :lg="12" :xl="12" class="mb20">
             <el-form-item label="邮箱" prop="email">
               <el-input v-model="state.form.email" placeholder="请输入" clearable></el-input>
             </el-form-item>
@@ -91,8 +106,9 @@
 </template>
 
 <script lang="ts" setup name="SaveOrUpdateUser">
-import {reactive, ref} from 'vue';
+import {reactive, ref, onMounted} from 'vue';
 import {useUserApi} from "/@/api/useSystemApi/user";
+import {useDepartmentApi} from "/@/api/useSystemApi/department";
 import {ElMessage} from "element-plus";
 
 const emit = defineEmits(["getList"])
@@ -116,6 +132,7 @@ const createForm = () => {
     user_type: 20, // 用户类型
     remarks: '', // 描述
     updated_by: null, // 更新人
+    dept_id: null, // 所属部门
   }
 }
 
@@ -124,6 +141,7 @@ const state = reactive({
   isShowDialog: false,
   editType: 'save',
   form: createForm(),
+  deptTreeData: [] as any[],
   rules: {
     username: [{required: true, message: '请输入用户名称', trigger: 'blur'},],
     roles: [{required: true, message: '请选择角色', trigger: 'blur'},],
@@ -134,6 +152,7 @@ const state = reactive({
 // 新增修改窗口初始化
 const openDialog = (editType: string, row: any) => {
   state.editType = editType
+  getDeptData()
   if (row) {
     state.form = JSON.parse(JSON.stringify(row));
     // 编辑时清空密码字段，避免显示旧密码
@@ -166,6 +185,14 @@ const saveOrUpdate = () => {
   })
 
 };
+
+// 获取部门数据
+const getDeptData = () => {
+  useDepartmentApi().getList()
+    .then(res => {
+      state.deptTreeData = res.data || [];
+    });
+}
 
 defineExpose({
   openDialog,

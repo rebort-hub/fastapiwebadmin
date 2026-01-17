@@ -3,9 +3,9 @@
     <el-card>
       <div class="system-user-search mb15">
         <el-input v-model="state.listQuery.name" placeholder="请输入角色名称" style="max-width: 180px"></el-input>
-        <el-button type="primary" class="ml10" @click="search">查询
+        <el-button v-auth="'role:query'" type="primary" class="ml10" @click="search">查询
         </el-button>
-        <el-button type="success" class="ml10" @click="onOpenSaveOrUpdate('save', null)">新增
+        <el-button v-auth="'role:add'" type="success" class="ml10" @click="onOpenSaveOrUpdate('save', null)">新增
         </el-button>
       </div>
       <z-table
@@ -27,6 +27,7 @@ import {h, onMounted, reactive, ref} from 'vue';
 import {ElButton, ElMessage, ElMessageBox, ElTag} from 'element-plus';
 import SaveOrUpdateRole from '/@/views/system/role/EditRole.vue';
 import {useRolesApi} from "/@/api/useSystemApi/roles";
+import {auth as authFunction} from '/@/utils/authFunction';
 
 
 const SaveOrUpdateRoleRef = ref();
@@ -44,6 +45,7 @@ const state = reactive({
       }, () => row.name)
     },
     {key: 'role_type', label: '权限类型', width: '', align: 'center', show: true},
+    {key: 'dept_name', label: '所属部门', width: '150', align: 'center', show: true},
     {
       key: 'status', label: '角色状态', width: '', align: 'center', show: true,
       render: (row: any) => h(ElTag, {
@@ -51,11 +53,8 @@ const state = reactive({
       }, () => row.status == 10 ? "启用" : "禁用",)
     },
     {key: 'description', label: '角色描述', width: '', align: 'center', show: true},
-    {key: 'description', label: '备注', width: '', align: 'center', show: true},
     {key: 'updation_date', label: '更新时间', width: '150', align: 'center', show: true},
-    {key: 'updated_by_name', label: '更新人', width: '', align: 'center', show: true},
-    {key: 'creation_date', label: '创建时间', width: '150', align: 'center', show: true},
-    {key: 'created_by_name', label: '创建人', width: '', align: 'center', show: true},
+    {key: 'updated_by_name', label: '更新人', width: '100', align: 'center', show: true},
     {
       label: '操作', fixed: 'right', width: '140', align: 'center',
       render: (row: any) => h("div", null, [
@@ -63,14 +62,16 @@ const state = reactive({
           type: "primary",
           onClick: () => {
             onOpenSaveOrUpdate("update", row)
-          }
+          },
+          style: authFunction('role:edit') ? '' : 'display:none'
         }, () => '编辑'),
 
         h(ElButton, {
           type: "danger",
           onClick: () => {
             deleted(row)
-          }
+          },
+          style: authFunction('role:delete') ? '' : 'display:none'
         }, () => '删除')
       ])
     },

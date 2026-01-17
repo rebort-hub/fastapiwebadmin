@@ -41,6 +41,20 @@
                          inactive-text="禁"></el-switch>
             </el-form-item>
           </el-col>
+          <el-col :xs="24" :sm="12" :md="12" :lg="12" :xl="12" class="mb20">
+            <el-form-item label="所属部门">
+              <el-tree-select
+                v-model="state.form.dept_id"
+                :data="state.deptTreeData"
+                :props="{ label: 'name', value: 'id' }"
+                placeholder="请选择所属部门"
+                clearable
+                check-strictly
+                :render-after-expand="false"
+                class="w100"
+              />
+            </el-form-item>
+          </el-col>
           <el-col :xs="24" :sm="24" :md="24" :lg="24" :xl="24" class="mb20">
             <el-form-item label="角色描述">
               <el-input v-model="state.form.description" type="textarea" placeholder="请输入角色描述"
@@ -74,6 +88,7 @@
 import {reactive, ref} from 'vue';
 import {useMenuApi} from "/@/api/useSystemApi/menu";
 import {useRolesApi} from "/@/api/useSystemApi/roles";
+import {useDepartmentApi} from "/@/api/useSystemApi/department";
 import {ElMessage} from "element-plus";
 
 // 定义接口来定义对象的类型
@@ -90,6 +105,7 @@ interface RoleData {
   menus: Array<number>;
   description: string;
   status: boolean;
+  dept_id: number | null;
 }
 
 interface RoleState {
@@ -102,6 +118,7 @@ interface RoleState {
     children: string;
     label: string;
   };
+  deptTreeData: Array<any>;
 }
 
 const emit = defineEmits(['getList'])
@@ -114,6 +131,7 @@ let createForm = () => {
     menus: [],    // 关联菜单
     description: '',   //描述
     status: 10,   // 角色状态 10 启用，20 禁用
+    dept_id: null,  // 所属部门
   }
 }
 const formRef = ref()
@@ -123,6 +141,7 @@ const state = reactive<RoleState>({
   isShowDialog: false,
   form: createForm(),
   menuData: [],
+  deptTreeData: [],
   rules: {
     name: [{required: true, message: '请输入角色名称', trigger: 'blur'},],
     role_type: [{required: true, message: '请选择角色类型', trigger: 'blur'},],
@@ -142,6 +161,7 @@ const state = reactive<RoleState>({
 // 打开弹窗
 const openDialog = (editType: string, row: RoleData) => {
   getMenuData()
+  getDeptData()
   state.editType = editType
   if (row) {
     state.form = JSON.parse(JSON.stringify(row));
@@ -162,6 +182,9 @@ const onCancel = () => {
 const saveOrUpdate = () => {
   formRef.value.validate((valid: any) => {
     if (valid) {
+      console.log('保存的表单数据:', state.form);
+      console.log('dept_id 值:', state.form.dept_id);
+      
       useRolesApi().saveOrUpdate(state.form)
           .then(() => {
             ElMessage.success('操作成功');
@@ -178,6 +201,13 @@ const getMenuData = () => {
       .then(res => {
         state.menuData = res.data
       });
+}
+// 获取部门数据
+const getDeptData = () => {
+  useDepartmentApi().getList()
+    .then(res => {
+      state.deptTreeData = res.data || [];
+    });
 }
 // 赋值勾选的权限
 const roleTreeChange = () => {

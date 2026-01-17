@@ -3,9 +3,9 @@
     <el-card>
       <div class="system-user-search mb15">
         <el-input v-model="state.listQuery.username" placeholder="请输入用户名称" style="max-width: 180px"></el-input>
-        <el-button type="primary" class="ml10" @click="search">查询
+        <el-button v-auth="'user:query'" type="primary" class="ml10" @click="search">查询
         </el-button>
-        <el-button type="success" class="ml10" @click="onOpenSaveOrUpdate('save', null)">
+        <el-button v-auth="'user:add'" type="success" class="ml10" @click="onOpenSaveOrUpdate('save', null)">
           新增
         </el-button>
       </div>
@@ -29,6 +29,7 @@ import {ElButton, ElMessage, ElMessageBox, ElTag} from 'element-plus';
 import SaveOrUpdateUser from '/@/views/system/user/EditUser.vue';
 import {useUserApi} from '/@/api/useSystemApi/user';
 import {useRolesApi} from "/@/api/useSystemApi/roles";
+import {auth as authFunction} from '/@/utils/authFunction';
 
 // 定义接口来定义对象的类型
 interface TableDataRow {
@@ -83,6 +84,7 @@ const state = reactive<StateRow>({
       key: 'roles', label: '关联角色', width: '', align: 'center', show: true,
       render: (row: any) => handleRoles(row.roles)
     },
+    {key: 'dept_name', label: '所属部门', width: '150', align: 'center', show: true},
     {key: 'email', label: '邮箱', width: '', align: 'center', show: true},
     {
       key: 'status', label: '用户状态', width: '', align: 'center', show: true,
@@ -104,28 +106,32 @@ const state = reactive<StateRow>({
           size: "small",
           onClick: () => {
             onOpenSaveOrUpdate('update', row)
-          }
+          },
+          style: authFunction('user:edit') ? '' : 'display:none'
         }, () => '编辑'),
         h(ElButton, {
           type: row.status ? "warning" : "success",
           size: "small",
           onClick: () => {
             toggleStatus(row)
-          }
+          },
+          style: authFunction('user:disable') ? '' : 'display:none'
         }, () => row.status ? '禁用' : '启用'),
         h(ElButton, {
           type: "info",
           size: "small",
           onClick: () => {
             resetPassword(row)
-          }
+          },
+          style: authFunction('user:resetPwd') ? '' : 'display:none'
         }, () => '重置密码'),
         h(ElButton, {
           type: "danger",
           size: "small",
           onClick: () => {
             deleted(row)
-          }
+          },
+          style: authFunction('user:delete') ? '' : 'display:none'
         }, () => '删除')
       ])
     },

@@ -14,6 +14,7 @@ class RoleIn(BaseModel):
     menus: str = Field(..., description="菜单列表")
     description: typing.Optional[str] = Field(None, description="描述")
     status: typing.Optional[int] = Field(default=10, description="状态 10 启用 20 禁用")
+    dept_id: typing.Optional[int] = Field(None, description="所属部门ID")
 
     @model_validator(mode="before")
     def root_validator(cls, data: typing.Dict[typing.Text, typing.Any]):

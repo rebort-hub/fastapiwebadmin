@@ -111,3 +111,77 @@ async def authorize_token(request: Request):
 async def get_menu_by_token():
     user_info = await UserService.get_menu_by_token()
     return await HttpResponse.success(user_info)
+
+
+@router.post('/getButtonPermissions', description="根据token获取按钮权限")
+async def get_button_permissions():
+    permissions = await UserService.get_button_permissions()
+    return await HttpResponse.success(permissions)
+
+
+@router.post('/debugUserPermissions', description="调试用户权限数据")
+async def debug_user_permissions():
+    """调试接口：查看用户的完整权限数据"""
+    from app.models.system_models import Menu, Roles
+    from app.utils.current_user import current_user
+    
+    # 获取当前用户
+    token_user_info = await current_user()
+    user_info = await User.get(token_user_info.get("id"))
+    
+    debug_info = {
+        "user": {
+            "id": user_info.id,
+            "username": user_info.username,
+            "user_type": user_info.user_type,
+            "user_type_name": "超级管理员" if user_info.user_type == 10 else "普通用户",
+            "roles": user_info.roles
+        },
+        "buttons_in_db": [],
+        "user_roles": [],
+        "assigned_menu_ids": [],
+        "assigned_buttons": [],
+        "final_auth_list": []
+    }
+    
+    # 1. 查询数据库中所有按钮权限
+    all_buttons = await Menu.get_all_buttons()
+    debug_info["buttons_in_db"] = [
+        {"id": btn.get("id"), "title": btn.get("title"), "roles": btn.get("roles")}
+        for btn in all_buttons
+    ]
+    debug_info["buttons_in_db_count"] = len(all_buttons)
+    
+    # 2. 获取用户权限
+    if user_info.user_type == 10:
+        # 超级管理员
+        debug_info["final_auth_list"] = [btn.get('roles') for btn in all_buttons if btn.get('roles')]
+    else:
+        # 普通用户
+        if user_info.roles:
+            roles = await Roles.get_roles_by_ids(user_info.roles)
+            debug_info["user_roles"] = [
+                {"id": r.get("id"), "name": r.get("name"), "menus": r.get("menus")}
+                for r in roles
+            ]
+            
+            menu_ids = []
+            for role in roles:
+                if role.get('menus'):
+                    menu_ids += list(map(int, role['menus'].split(',')))
+            
+            debug_info["assigned_menu_ids"] = list(set(menu_ids))
+            
+            if menu_ids:
+                buttons = await Menu.get_buttons_by_ids(list(set(menu_ids)))
+                debug_info["assigned_buttons"] = [
+                    {"id": btn.get("id"), "title": btn.get("title"), "roles": btn.get("roles")}
+                    for btn in buttons
+                ]
+                debug_info["final_auth_list"] = [btn.get('roles') for btn in buttons if btn.get('roles')]
+    
+    # 3. 获取完整的用户信息（包含权限）
+    full_user_info = await UserService.get_user_info_by_token()
+    debug_info["returned_user_info"] = full_user_info
+    
+    return await HttpResponse.success(debug_info)

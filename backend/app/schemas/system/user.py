@@ -19,6 +19,7 @@ class UserIn(BaseModel):
     tags: typing.List = Field(None, description='标签')
     roles: typing.List = Field(None, description='权限')
     password: typing.Optional[str] = Field(description='标签', default=decrypt_rsa_password("123456"))
+    dept_id: typing.Optional[int] = Field(None, description='所属部门ID')
 
 
 class UserUpdate(BaseModel):
@@ -68,7 +69,7 @@ class UserLoginRecordIn(BaseModel):
     source_type: typing.Optional[str] = Field(None, description="来源")
 
 
-class UserLoginRecordQuery(BaseModel):
+class UserLoginRecordQuery(BaseSchema):
     token: typing.Optional[str] = Field(None, description='token')
     code: typing.Optional[str] = Field(None, description="账号")
     user_id: typing.Optional[int] = Field(None, description="用户id")
