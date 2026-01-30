@@ -1,6 +1,6 @@
 import typing
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator, model_validator
 
 from app.schemas.base import BaseSchema
 
@@ -23,7 +23,7 @@ class LookupId(BaseSchema):
 
 class LookupValueQuery(BaseSchema):
     code: typing.Optional[str] = Field(None, description="字典code")
-    lookup_id: typing.Optional[str] = Field(None, description="lookup_id")
+    lookup_id: typing.Optional[typing.Union[str, int]] = Field(None, description="lookup_id")
 
     # @root_validator(pre=True)
     # def root_validator(cls, data):
@@ -38,10 +38,20 @@ class LookupValueQuery(BaseSchema):
 
 class LookupValueIn(BaseModel):
     """字典值保存"""
-    id: int = Field(None, description="字典id")
-    lookup_id: int = Field(None, description="字典id")
-    lookup_code: typing.Optional[str] = Field(..., description="字典code")
-    lookup_value: typing.Optional[str] = Field(..., description="字典value")
+    id: typing.Optional[int] = Field(None, description="字典id")
+    lookup_id: typing.Optional[int] = Field(None, description="字典id")
+    lookup_code: typing.Optional[str] = Field(None, description="字典code")
+    lookup_value: typing.Optional[str] = Field(None, description="字典value")
     ext: typing.Optional[str] = Field(None, description="备注")
     display_sequence: typing.Optional[int] = Field(None, description="显示顺序")
     description: typing.Optional[str] = Field(None, description="描述")
+
+    @model_validator(mode='before')
+    @classmethod
+    def convert_empty_strings(cls, data: typing.Any) -> typing.Any:
+        """将空字符串转换为 None"""
+        if isinstance(data, dict):
+            for key, value in data.items():
+                if value == '':
+                    data[key] = None
+        return data
