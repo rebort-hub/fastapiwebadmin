@@ -6,7 +6,7 @@
         <el-button v-auth="'project:query'" type="primary" class="ml10" @click="search">查询</el-button>
         <el-button v-auth="'project:add'" type="success" class="ml10" @click="onOpenSaveOrUpdate('save', null)">新增</el-button>
       </div>
-      <z-table
+      <synrebort-table
           :columns="state.columns"
           :data="state.listData"
           ref="tableRef"

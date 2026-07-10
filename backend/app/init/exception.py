@@ -13,7 +13,7 @@ from starlette.requests import Request
 
 from app.corelibs.codes import CodeEnum
 from app.exceptions.exceptions import IpError, ErrorUser, UserNotExist, SetRedis, AccessTokenFail, IdNotExist, \
-    ParameterError
+    ParameterError, PermissionNotEnough
 from app.utils.response import HttpResponse
 
 
@@ -53,6 +53,12 @@ def init_exception(app: FastAPI):
     @app.exception_handler(AccessTokenFail)
     async def access_token_fail_handler(request: Request, exc: AccessTokenFail):
         """"""
+        logger.warning(f"{exc.msg}:{exc.code}\nURL:{request.method}-{request.url}\nHeaders:{request.headers}")
+        return await HttpResponse.success(code=exc.code, msg=exc.msg)
+
+    @app.exception_handler(PermissionNotEnough)
+    async def permission_not_enough_handler(request: Request, exc: PermissionNotEnough):
+        """权限不足"""
         logger.warning(f"{exc.msg}:{exc.code}\nURL:{request.method}-{request.url}\nHeaders:{request.headers}")
         return await HttpResponse.success(code=exc.code, msg=exc.msg)
 

@@ -13,7 +13,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_scoped_session, async_sessionmaker
 
 from app.utils.context import SQLAlchemySession
-from config import config
+from app.config.setting import settings as config
 
 engine = create_async_engine(
     url=config.DATABASE_URI,  # 数据库uri

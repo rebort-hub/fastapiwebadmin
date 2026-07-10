@@ -16,7 +16,7 @@ RUN apt-get update && apt-get install -y \
     pkg-config \
     && rm -rf /var/lib/apt/lists/*
 
-# 复制依赖文件
+# 复制依赖文件（生产环境使用 requirements.txt，与 pyproject.toml 保持一致）
 COPY requirements.txt .
 
 # 安装 Python 依赖
@@ -32,5 +32,5 @@ EXPOSE 8100
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
     CMD python -c "import requests; requests.get('http://localhost:8100/api/health/health')"
 
-# 启动命令
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8100"]
+# 启动命令（factory 模式，与 main.py create_app 一致）
+CMD ["uvicorn", "main:create_app", "--factory", "--host", "0.0.0.0", "--port", "8100"]

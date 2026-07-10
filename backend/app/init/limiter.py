@@ -8,7 +8,7 @@ import redis.asyncio as aioredis
 from fastapi_limiter import FastAPILimiter
 from fastapi_limiter.depends import RateLimiter
 
-from config import config
+from app.config.setting import settings as config
 
 
 def get_real_ip(request: Request) -> str:
@@ -52,7 +52,7 @@ async def init_limiter(app: FastAPI):
     """
     try:
         # 从配置中获取 Redis URI
-        redis_uri = str(config.REDIS_URI)
+        redis_uri = str(config.REDIS_URI or config.computed_redis_uri)
         
         # 创建 Redis 连接
         redis_connection = aioredis.from_url(

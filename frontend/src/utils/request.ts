@@ -63,15 +63,16 @@ service.interceptors.response.use(
 		}
 	},
 	(error) => {
-		// 对响应错误做点什么
 		if (error.message.indexOf('timeout') != -1) {
 			ElMessage.error('网络超时');
 		} else if (error.message == 'Network Error') {
-			ElMessage.error('网络连接错误');
+			ElMessage.error('无法连接后端，请确认 backend 已启动（8100 端口）');
+		} else if (error.response?.data?.msg) {
+			ElMessage.error(error.response.data.msg);
+		} else if (error.response?.statusText) {
+			ElMessage.error(error.response.statusText);
 		} else {
-
-			if (error.response?.data) ElMessage.error(error.response.statusText);
-			else ElMessage.error('接口路径找不到');
+			ElMessage.error(error.message || '接口请求失败');
 		}
 		return Promise.reject(error);
 	}

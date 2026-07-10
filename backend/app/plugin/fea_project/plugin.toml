@@ -1,0 +1,5 @@
+name = "project"
+title = "项目管理"
+version = "1.0.0"
+optional = true
+description = "业务项目管理插件示例"

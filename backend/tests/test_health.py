@@ -58,7 +58,7 @@ async def test_system_info(client: AsyncClient):
     assert "base_url" in info_data
     assert "api_prefix" in info_data
     assert "timestamp" in info_data
-    assert info_data["name"] == "fast-element-admin"
+    assert info_data["name"] == "fastapiwebadmin"
 
 
 @pytest.mark.asyncio
@@ -87,4 +87,4 @@ async def test_openapi_schema(client: AsyncClient):
     assert "openapi" in schema
     assert "info" in schema
     assert "paths" in schema
-    assert schema["info"]["title"] == "Fast Element Admin API"
+    assert "FastapiwebAdmin" in schema["info"]["title"]

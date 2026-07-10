@@ -1,16 +1,25 @@
 export function getEnv() {
-	return import.meta.env.ENV
+	return import.meta.env.ENV;
 }
 
+/** axios baseURL = 后端地址 + API 前缀 */
 export function getApiBaseUrl() {
-	return import.meta.env.VITE_API_BASE_URL + import.meta.env.VITE_API_PREFIX || "http://localhost:9100" + import.meta.env.VITE_API_PREFIX
+	const base = (import.meta.env.VITE_API_BASE_URL || '').replace(/\/$/, '');
+	const prefix = import.meta.env.VITE_API_PREFIX || '/api';
+	return `${base}${prefix}`;
 }
 
 export function getWebSocketUrl() {
-	return ((window.location.protocol === 'https:') ? 'wss' : 'ws') + '://' + import.meta.env.VITE_WBE_SOCKET_URL
+	const host = import.meta.env.VITE_WBE_SOCKET_URL || window.location.host;
+	return `${window.location.protocol === 'https:' ? 'wss' : 'ws'}://${host}`;
 }
 
-
+/** 文件上传等需要完整后端根地址时使用 */
 export function getBaseApiUrl() {
-	return import.meta.env.VITE_API_BASE_URL
+	const base = (import.meta.env.VITE_API_BASE_URL || '').replace(/\/$/, '');
+	if (base) {
+		return base;
+	}
+	// 开发代理模式下，上传走当前站点 + /api
+	return window.location.origin;
 }

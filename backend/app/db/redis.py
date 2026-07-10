@@ -124,9 +124,15 @@ class RedisPool:
     def init_by_config(self, config):
         if self.redis:
             return self.redis
-        if not hasattr(config, "REDIS_URI"):
+        uri = getattr(config, "REDIS_URI", None) or getattr(config, "computed_redis_uri", None)
+        if not uri:
             raise Exception("配置REDIS_URL不能为空！~")
-        return self._form_url(config.REDIS_URI)
+        return self._form_url(uri)
+
+    def init_by_uri(self, uri: str):
+        if self.redis:
+            return self.redis
+        return self._form_url(uri)
 
     def _form_url(self, url: str):
         if not url:

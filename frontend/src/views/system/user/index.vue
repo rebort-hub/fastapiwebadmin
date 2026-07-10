@@ -9,7 +9,7 @@
           新增
         </el-button>
       </div>
-      <z-table
+      <synrebort-table
           :columns="state.columns"
           :data="state.listData"
           ref="tableRef"

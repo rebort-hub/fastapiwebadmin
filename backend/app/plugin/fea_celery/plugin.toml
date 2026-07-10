@@ -1,0 +1,10 @@
+name = "celery"
+title = "异步任务"
+version = "1.0.0"
+optional = true
+description = "Celery Worker / Beat 与定时任务调度插件"
+
+[celery]
+app = "app.plugin.fea_celery.worker.celery"
+scheduler = "app.plugin.fea_celery.scheduler.schedulers:DatabaseScheduler"
+tasks = ["app.plugin.fea_celery.tasks.common"]

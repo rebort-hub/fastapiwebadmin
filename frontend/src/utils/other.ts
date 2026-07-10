@@ -9,18 +9,19 @@ import {verifyUrl} from '/@/utils/toolsValidate';
 
 // 引入组件
 import {Pane, Splitpanes} from "splitpanes";
-import ZTable from "/@/components/Z-Table/index.vue"
+import SynrebortTable from "/@/components/synrebort-table/index.vue"
 import MonacoEditor from "/@/components/monaco/index.vue"
 import SvgIcon from "/@/components/svgIcon/index.vue"
-import ZeroCard from "/@/components/ZeroCard/index.vue"
+import SynrebortCard from "/@/components/synrebort-card/index.vue"
 
 
 /**
- * 导出全局注册 zero table
+ * 导出全局注册 synrebort table
  * @param app vue 实例
  */
-export function ZeroTable(app: App) {
-  app.component('z-table', ZTable);
+export function SynrebortTableRegister(app: App) {
+  app.component('synrebort-table', SynrebortTable);
+  app.component('synrebort-card', SynrebortCard);
 }
 
 /**
@@ -208,11 +209,10 @@ export function handleOpenLink(val: RouteItem) {
  */
 const other = {
   apiPublicAssembly: (app: App) => {
-    ZeroTable(app);
+    SynrebortTableRegister(app);
     splitpanes(app);
     monaco(app);
     elSvg(app);
-    app.component('z-card', ZeroCard);
   },
   useTitle: () => {
     useTitle();

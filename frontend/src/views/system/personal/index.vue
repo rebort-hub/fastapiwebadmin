@@ -3,7 +3,7 @@
     <el-row>
       <!-- 个人信息 -->
       <el-col :xs="24" :sm="8" style="padding: 0 10px">
-        <z-card>
+        <synrebort-card>
           <div class="personal-user">
             <div class="personal-user-avatar" @click="onCropperDialogOpen">
 
@@ -101,12 +101,12 @@
               </el-row>
             </div>
           </div>
-        </z-card>
+        </synrebort-card>
       </el-col>
 
       <!-- 消息通知 -->
       <el-col :xs="24" :sm="16" class="pl15 personal-info">
-        <z-card shadow="hover">
+        <synrebort-card shadow="hover">
           <template #header>
             <span>消息通知</span>
           </template>
@@ -117,7 +117,7 @@
               </li>
             </ul>
           </div>
-        </z-card>
+        </synrebort-card>
       </el-col>
 
 
@@ -128,7 +128,7 @@
                v-model="state.showEditPage">
       <el-row>
         <el-col :span="24" style="padding: 0 10px">
-          <z-card class="personal-edit">
+          <synrebort-card class="personal-edit">
             <div class="personal-edit-title">基本信息</div>
             <el-form :model="state.userInfoForm" size="default" label-width="auto" class="mt35 mb35">
               <el-row :gutter="35">
@@ -181,7 +181,7 @@
                 </el-col>
               </el-row>
             </el-form>
-          </z-card>
+          </synrebort-card>
         </el-col>
       </el-row>
       <template #footer>

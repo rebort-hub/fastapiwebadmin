@@ -8,7 +8,7 @@
         <el-button v-auth="'role:add'" type="success" class="ml10" @click="onOpenSaveOrUpdate('save', null)">新增
         </el-button>
       </div>
-      <z-table
+      <synrebort-table
           :columns="state.columns"
           :data="state.listData"
           ref="tableRef"

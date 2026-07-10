@@ -7,7 +7,7 @@
         <el-input v-model="state.listQuery.login_ip" placeholder="请输入登录IP" style="max-width: 180px" class="ml10"></el-input>
         <el-button v-auth="'loginRecord:query'" type="primary" class="ml10" @click="search">查询</el-button>
       </div>
-      <z-table
+      <synrebort-table
           :columns="state.columns"
           :data="state.listData"
           ref="tableRef"

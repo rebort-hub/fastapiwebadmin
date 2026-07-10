@@ -2,11 +2,11 @@
 
 <div align="center">
 
-**基于 FastAPI + Vue3 的现代化企业级后台管理系统**
+**基于 FastAPI + Vue3 的企业级后台管理系统**
 
-一个开箱即用的前后端分离管理平台，内置完整的 RBAC 权限系统和动态路由机制
+前后端分离 · RBAC 权限 · 插件化业务扩展 · 动态路由
 
-[![Python](https://img.shields.io/badge/Python-3.13-blue.svg)](https://www.python.org/)
+[![Python](https://img.shields.io/badge/Python-3.10+-blue.svg)](https://www.python.org/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.111.0-green.svg)](https://fastapi.tiangolo.com/)
 [![Vue](https://img.shields.io/badge/Vue-3.5.8-brightgreen.svg)](https://vuejs.org/)
 [![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
@@ -15,506 +15,533 @@
 
 ---
 
-## 🌈 项目介绍
+## 项目简介
 
-FastAPI Web Admin 是一个面向企业级应用的现代化后台管理系统脚手架，采用前后端完全分离的架构设计。
+FastAPI Web Admin 是一套开箱即用的后台管理脚手架，后端采用 **系统模块 + 业务插件** 分离架构，前端基于 Vue3 + Element Plus。
 
-**核心特性：**
-- 🚀 开箱即用，快速搭建企业后台系统
-- 🔐 完整的 RBAC 权限管理体系
-- 🎯 动态路由注册，配置即可分配权限
-- 🎨 支持主题切换和暗黑模式
-- 📦 Docker 一键部署
-- ⚡ 异步高性能架构
-- 🛠️ 开发者友好，专注业务逻辑
+**核心能力：**
+
+- RBAC 权限（菜单 / 按钮 / 接口）
+- 动态路由与菜单配置
+- 业务插件自动发现与注册
+- Alembic 数据库版本管理
+- uv 依赖管理与统一 CLI
+- 开发环境自动建表与种子数据
+
+**默认账号：** `admin` / `123456`
 
 ---
 
-## 📋 技术栈
+## 技术栈
+
+| 层级 | 技术 |
+|------|------|
+| 后端 | FastAPI、SQLAlchemy 2.0、Pydantic v2、Alembic、Celery、Redis |
+| 前端 | Vue 3、Vite、TypeScript、Element Plus、Pinia |
+| 数据库 | MySQL 8.x（推荐） |
+| 包管理 | 后端 [uv](https://docs.astral.sh/uv/)，前端 yarn / npm |
+
+---
+
+## 仓库结构
+
+```
+fastapiwebadmin/
+├── backend/                 # 后端（Python / FastAPI）
+│   ├── main.py              # 唯一入口：create_app + CLI
+│   ├── pyproject.toml       # 依赖声明（uv 源）
+│   ├── uv.lock
+│   ├── alembic.ini
+│   ├── env/                 # 环境配置（唯一配置目录）
+│   │   ├── .env.dev.example
+│   │   └── .env.prod.example
+│   ├── db_script/           # 种子 SQL（db_init.sql）
+│   ├── app/
+│   │   ├── api/v1/          # 系统 API（controller / service / schema / model）
+│   │   ├── plugin/          # 业务插件（fea_project、fea_celery 等）
+│   │   ├── models/          # 仅 base.py 公共 ORM 基类
+│   │   ├── core/            # 日志、建表、插件发现
+│   │   ├── config/          # setting.py / path_conf.py
+│   │   ├── scripts/         # init_app.py、initialize.py
+│   │   ├── alembic/         # 迁移脚本
+│   │   ├── db/              # 数据库 / Redis 连接
+│   │   ├── common/          # 枚举、公共 Schema、响应模型
+│   │   ├── corelibs/        # 路由封装、错误码、上下文 g
+│   │   └── init/            # 异常处理、限流器
+│   ├── run_win.bat          # Windows 开发菜单
+│   └── run_linux.sh         # Linux 开发脚本
+│
+├── frontend/                # 前端（Vue3）
+│   └── src/
+│       ├── api/             # 接口封装
+│       ├── views/           # 页面
+│       ├── components/      # 公共组件（synrebort-table 等）
+│       └── ...
+│
+└── README.md
+```
+
+> **注意：** 旧版 `app/apis/`、`app/services/`、`app/schemas/`、`config.py`、`cli.py` 已移除。所有开发请遵循下方规范，勿在废弃路径下新增代码。
+
+---
+
+## 后端开发规范
+
+### 1. 模块四层约定（标准）
+
+**每个业务模块固定四层文件**，目录即模块边界：
+
+```
+<module>/
+├── controller.py    # 接口层：路由、入参校验、调用 service
+├── service.py       # 业务层：业务逻辑、事务编排
+├── schema.py        # 契约层：Pydantic 请求/响应/查询模型
+└── model.py         # 数据层：SQLAlchemy ORM 模型（继承 Base）
+```
+
+**调用链（单向）：**
+
+```
+HTTP 请求 → controller → service → model → 数据库
+              ↑            ↑
+           schema       schema（入参/出参类型）
+```
+
+| 文件 | 职责 | 禁止 |
+|------|------|------|
+| `controller.py` | 定义 `APIRouter`、绑定路由、返回 `HttpResponse` | 不写 SQL、不写复杂业务 |
+| `service.py` | 业务规则、组合多个 model 操作 | 不直接处理 HTTP Request |
+| `schema.py` | 入参校验、序列化，继承 `BaseSchema` | 不访问数据库 |
+| `model.py` | 表结构、查询/分页等数据访问方法 | 不写 HTTP 相关逻辑 |
+
+**系统模块示例：**
+
+```
+app/api/v1/system/user/
+├── controller.py
+├── service.py
+├── schema.py
+└── model.py          # User 表
+```
+
+**业务插件示例：**
+
+```
+app/plugin/fea_project/project/
+├── controller.py
+├── service.py
+├── schema.py
+└── model.py          # ProjectInfo 等
+```
+
+> `model.py` 会被 `ImportUtil` 自动扫描，启动时 `create_all` 自动建表，无需注册到 Alembic。
+
+### 2. 严格四层
+
+除 `app/models/base.py` 公共基类外，**所有业务定义必须在模块目录内完成**，禁止集中到 `system_models.py` 等共享文件。
+
+```
+<module>/
+├── controller.py
+├── service.py
+├── schema.py
+└── model.py
+```
+
+**允许仅保留的公共层：**
+
+| 路径 | 内容 |
+|------|------|
+| `app/models/base.py` | ORM 声明基类 `Base` |
+| `app/common/schema.py` | Pydantic 基类 `BaseSchema` |
+| `app/common/response.py` | 统一响应模型 |
+| `app/config/` | 配置 |
+
+### 3. 例外模块（允许不足四层）
+
+| 类型 | 示例 | 说明 |
+|------|------|------|
+| 纯工具接口 | `health/` | 仅 `controller.py`，无持久化 |
+| 透传/聚合 | `id_center/` | 仅转发，无独立表 |
+| 基础设施插件 | `fea_celery/` | 无 HTTP，含 `worker.py` + `tasks/` |
+| 仅表无接口 | `notify/`、`request_history/` | 暂仅 `model.py`，预留扩展 |
+
+### 4. 目录归属
+
+| 位置 | 用途 |
+|------|------|
+| `app/api/v1/system/<module>/` | 系统内置模块（用户、角色、菜单…） |
+| `app/api/v1/common/<module>/` | 公共能力（文件、健康检查） |
+| `app/plugin/fea_<name>/<module>/` | 业务插件模块 |
+| `app/common/` | 跨模块公共：`BaseSchema`、响应模型、枚举 |
+| `app/config/setting.py` | 唯一配置入口 |
+
+**禁止：**
+
+- 在 `backend/` 根目录新建 `config.py` 或第二套配置
+- 新建 `apis/`、`services/` 平级目录
+- 新功能把 ORM 写进集中式 `*_models.py` 文件
+- 通过 re-export shim 做「兼容旧路径」
+
+### 5. 路由注册
+
+- 系统 API：在 `app/api/v1/system/router.py` 聚合，前缀 `/api`
+- 业务插件：`discover.py` 扫描 `fea_*/**/controller.py`，自动挂载
+
+### 6. 业务插件规范
+
+插件目录名必须以 `fea_` 开头：
+
+```
+app/plugin/fea_project/
+├── plugin.toml
+└── project/                 # 子模块，遵循四层约定
+    ├── controller.py
+    ├── service.py
+    ├── schema.py
+    ├── model.py
+```
+
+`fea_celery`（后台任务插件，无 HTTP 四层中的 controller）：
+
+```
+app/plugin/fea_celery/
+├── plugin.toml
+├── worker.py
+├── model.py
+├── schema.py
+├── tasks/
+└── scheduler/
+```
+
+### 7. 配置与环境
+
+```bash
+# 开发
+cp backend/env/.env.dev.example backend/env/.env.dev
+
+# 生产
+cp backend/env/.env.prod.example backend/env/.env.prod
+```
+
+通过 `ENVIRONMENT` 切换：`dev` / `prod`。配置只读 `backend/env/.env.{env}`，不使用根目录 `.env`。
+
+关键项：
+
+| 变量 | 开发建议 | 生产建议 |
+|------|----------|----------|
+| `AUTO_CREATE_TABLES` | `True`（空库自动建表） | `False`（仅用 Alembic） |
+| `AUTO_SEED_DATA` | `True`（空库导入种子） | `False` |
+| `SEED_SQL_FILE` | `db_script/db_init.sql` | 不启用 |
+
+### 8. 日志
+
+- 控制台 + `backend/logs/info.log` + `backend/logs/error.log`
+- 使用 `from app.core.logger import log, logger`
+
+### 9. 代码风格
+
+- Python 3.10+，函数与公共方法加类型注解
+- 遵循 PEP 8
+- Schema 继承 `app.common.schema.BaseSchema`
+- API 响应统一走 `app.utils.response.HttpResponse`
+
+---
+
+## 快速开始
 
 ### 环境要求
 
-| 技术 | 版本 | 说明 |
-|------|------|------|
-| Python | ≤ 3.13 | 后端运行环境 |
-| Node.js | 18.15.0 | 前端构建环境 |
-| MySQL | 8.0.23 | 主数据库 |
-| Redis | 6.0.9 | 缓存和任务队列 |
+- Python 3.10+
+- Node.js 18+
+- MySQL 8.0+
+- Redis 6+（限流 / Celery 需要）
+- [uv](https://docs.astral.sh/uv/getting-started/installation/)
 
-### 后端技术栈
-
-| 技术 | 版本 | 用途 |
-|------|------|------|
-| FastAPI | 0.111.0 | 异步 Web 框架 |
-| SQLAlchemy | 2.0.3 | 异步 ORM |
-| Pydantic | 2.7.3 | 数据验证 |
-| Alembic | 1.13.1 | 数据库迁移 |
-| Celery | 5.2.7 | 异步任务队列 |
-| Redis | 5.0.4 | 缓存和消息队列 |
-| Loguru | 0.6.0 | 日志系统 |
-| python-jose | 3.3.0 | JWT 认证 |
-
-### 前端技术栈
-
-| 技术 | 版本 | 用途 |
-|------|------|------|
-| Vue | 3.5.8 | 渐进式框架 |
-| Vite | 5.4.8 | 构建工具 |
-| TypeScript | 4.9.4 | 类型系统 |
-| Element Plus | 2.7.4 | UI 组件库 |
-| Pinia | 2.0.28 | 状态管理 |
-| Vue Router | 4.1.6 | 路由管理 |
-| Axios | 1.2.1 | HTTP 客户端 |
-| Monaco Editor | 0.34.1 | 代码编辑器 |
-
----
-
-## 🏗️ 系统架构
-
-### 整体架构图
-
-```
-┌─────────────────────────────────────────────────────────────┐
-│                         用户层                               │
-│                    (浏览器 / 移动端)                         │
-└────────────────────────┬────────────────────────────────────┘
-                         │
-                         ▼
-┌─────────────────────────────────────────────────────────────┐
-│                      前端层 (Vue 3)                          │
-│  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌──────────┐   │
-│  │  路由    │  │  状态    │  │  组件    │  │  指令    │   │
-│  │ Router   │  │  Pinia   │  │ Element  │  │ 权限控制 │   │
-│  └──────────┘  └──────────┘  └──────────┘  └──────────┘   │
-└────────────────────────┬────────────────────────────────────┘
-                         │ HTTP/HTTPS
-                         ▼
-┌─────────────────────────────────────────────────────────────┐
-│                   API 网关层 (FastAPI)                       │
-│  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌──────────┐   │
-│  │  认证    │  │  限流    │  │  日志    │  │  异常    │   │
-│  │ 中间件   │  │ 中间件   │  │ 中间件   │  │  处理    │   │
-│  └──────────┘  └──────────┘  └──────────┘  └──────────┘   │
-└────────────────────────┬────────────────────────────────────┘
-                         │
-                         ▼
-┌─────────────────────────────────────────────────────────────┐
-│                    业务逻辑层 (Services)                     │
-│  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌──────────┐   │
-│  │  用户    │  │  角色    │  │  菜单    │  │  权限    │   │
-│  │ 服务     │  │ 服务     │  │ 服务     │  │  服务    │   │
-│  └──────────┘  └──────────┘  └──────────┘  └──────────┘   │
-└────────────────────────┬────────────────────────────────────┘
-                         │
-                         ▼
-┌─────────────────────────────────────────────────────────────┐
-│                  数据访问层 (SQLAlchemy)                     │
-│  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌──────────┐   │
-│  │  Models  │  │ Schemas  │  │  会话    │  │  事务    │   │
-│  │  定义    │  │  验证    │  │  管理    │  │  管理    │   │
-│  └──────────┘  └──────────┘  └──────────┘  └──────────┘   │
-└────────────────────────┬────────────────────────────────────┘
-                         │
-         ┌───────────────┴───────────────┬──────────────┐
-         ▼                               ▼              ▼
-┌──────────────────┐          ┌──────────────┐  ┌─────────────┐
-│   MySQL 8.0      │          │  Redis 6.0   │  │   Celery    │
-│   主数据库       │          │  缓存/队列   │  │  任务队列   │
-└──────────────────┘          └──────────────┘  └─────────────┘
-```
-
-### 后端分层架构
-
-```
-backend/
-├── app/
-│   ├── apis/              # API 路由层 - 处理 HTTP 请求
-│   │   ├── v1/            # API 版本控制
-│   │   ├── deps.py        # 依赖注入
-│   │   └── router.py      # 路由注册
-│   │
-│   ├── services/          # 业务逻辑层 - 核心业务处理
-│   │   ├── user.py        # 用户服务
-│   │   ├── role.py        # 角色服务
-│   │   ├── menu.py        # 菜单服务
-│   │   └── auth.py        # 认证服务
-│   │
-│   ├── models/            # 数据模型层 - ORM 模型定义
-│   │   ├── user.py        # 用户模型
-│   │   ├── role.py        # 角色模型
-│   │   └── base.py        # 基础模型
-│   │
-│   ├── schemas/           # 数据验证层 - Pydantic 模型
-│   │   ├── user.py        # 用户 Schema
-│   │   ├── role.py        # 角色 Schema
-│   │   └── response.py    # 响应 Schema
-│   │
-│   ├── db/                # 数据库配置
-│   │   ├── session.py     # 会话管理
-│   │   └── base.py        # 基础配置
-│   │
-│   ├── corelibs/          # 核心库
-│   │   ├── redis.py       # Redis 连接池
-│   │   ├── security.py    # 安全工具
-│   │   └── logger.py      # 日志配置
-│   │
-│   ├── utils/             # 工具函数
-│   │   ├── common.py      # 通用工具
-│   │   └── validators.py  # 验证器
-│   │
-│   ├── exceptions/        # 异常处理
-│   │   ├── handlers.py    # 异常处理器
-│   │   └── errors.py      # 自定义异常
-│   │
-│   └── init/              # 初始化模块
-│       └── init_data.py   # 初始数据
-│
-├── celery_worker/         # Celery 任务
-│   ├── tasks/             # 任务定义
-│   ├── scheduler/         # 定时任务
-│   └── worker.py          # Worker 配置
-│
-├── tests/                 # 测试文件
-│   ├── unit/              # 单元测试
-│   └── integration/       # 集成测试
-│
-├── alembic/               # 数据库迁移
-│   └── versions/          # 迁移版本
-│
-├── config.py              # 配置文件
-├── main.py                # 应用入口
-└── cli.py                 # CLI 工具
-```
-
-### 前端目录架构
-
-```
-frontend/src/
-├── api/                   # API 接口封装
-│   ├── user.ts            # 用户接口
-│   ├── role.ts            # 角色接口
-│   └── request.ts         # 请求封装
-│
-├── components/            # 公共组件
-│   ├── Table/             # 表格组件
-│   ├── Form/              # 表单组件
-│   └── Dialog/            # 对话框组件
-│
-├── layout/                # 布局组件
-│   ├── Header/            # 头部
-│   ├── Sidebar/           # 侧边栏
-│   └── Main/              # 主体
-│
-├── views/                 # 页面视图
-│   ├── system/            # 系统管理
-│   │   ├── user/          # 用户管理
-│   │   ├── role/          # 角色管理
-│   │   └── menu/          # 菜单管理
-│   └── dashboard/         # 仪表盘
-│
-├── router/                # 路由配置
-│   ├── index.ts           # 路由入口
-│   ├── routes.ts          # 路由定义
-│   └── guards.ts          # 路由守卫
-│
-├── stores/                # Pinia 状态管理
-│   ├── user.ts            # 用户状态
-│   ├── permission.ts      # 权限状态
-│   └── app.ts             # 应用状态
-│
-├── directive/             # 自定义指令
-│   └── permission.ts      # 权限指令 v-permission
-│
-├── utils/                 # 工具函数
-│   ├── auth.ts            # 认证工具
-│   ├── storage.ts         # 存储工具
-│   └── validate.ts        # 验证工具
-│
-├── types/                 # TypeScript 类型
-│   ├── user.d.ts          # 用户类型
-│   └── api.d.ts           # API 类型
-│
-├── theme/                 # 主题配置
-│   ├── light.scss         # 亮色主题
-│   └── dark.scss          # 暗色主题
-│
-├── App.vue                # 根组件
-└── main.ts                # 应用入口
-```
-
----
-
-## ✨ 核心特性
-
-### 后端核心功能
-
-#### 1. 异步高性能架构
-- FastAPI 异步框架，支持高并发请求
-- SQLAlchemy 2.0 异步 ORM，提升数据库操作性能
-- Redis 异步连接池，优化缓存访问
-
-#### 2. 完善的中间件系统
-- **认证中间件**：JWT Token 验证
-- **日志中间件**：请求/响应日志记录，trace_id 追踪
-- **限流中间件**：API 访问频率控制
-- **异常中间件**：统一异常捕获和响应
-
-#### 3. 分层架构设计
-- **APIs 层**：处理 HTTP 请求，参数验证
-- **Services 层**：业务逻辑处理，事务管理
-- **Models 层**：数据模型定义，数据库映射
-- **Schemas 层**：数据验证，序列化/反序列化
-
-#### 4. 任务队列系统
-- Celery 异步任务处理
-- Celery Beat 定时任务调度
-- 数据库持久化任务状态
-
-#### 5. 数据库管理
-- Alembic 数据库迁移
-- 一键初始化脚本
-- 自动生成迁移文件
-
-### 前端核心功能
-
-#### 1. 动态路由系统
-- 后端配置菜单，前端自动注册路由
-- 支持多级嵌套路由
-- 路由懒加载，优化首屏性能
-
-#### 2. 权限控制体系
-- **路由级权限**：根据角色动态生成菜单
-- **按钮级权限**：v-permission 指令控制
-- **接口级权限**：后端 API 权限验证
-
-#### 3. 主题系统
-- 亮色/暗色主题切换
-- 自定义主题配置
-- 主题持久化存储
-
-#### 4. 状态管理
-- Pinia 状态管理
-- 持久化插件支持
-- 模块化状态设计
-
-#### 5. 开发体验
-- TypeScript 类型支持
-- Monaco Editor 代码编辑
-- 热更新开发环境
-
----
-
-## 🚀 快速开始
-### 方式一：Docker 部署（推荐）
-
-#### 1. 克隆项目
-
-```bash
-git clone https://github.com/rebort-hub/fastapiwebadmin.git
-cd fastapiwebadmin
-```
-
-#### 2. 配置环境变量
-
-```bash
-# 复制环境变量文件
-cp .env.example .env
-
-# 编辑 .env 文件，配置数据库密码等信息
-```
-
-#### 3. 启动服务
-
-```bash
-# 一键启动所有服务
-docker-compose up -d
-
-# 查看服务状态
-docker-compose ps
-
-# 查看日志
-docker-compose logs -f
-```
-
-#### 4. 访问系统
-
-- 前端地址：http://localhost
-- 后端 API：http://localhost:8100
-- API 文档：http://localhost:8100/docs
-
-**默认账号**：admin / admin123456
-
----
-
-### 方式二：本地开发部署
-
-#### 后端部署
-
-##### 1. 环境准备
-
-```bash
-# 确保已安装 Python 3.13、MySQL 8.0、Redis 6.0
-python --version
-mysql --version
-redis-server --version
-```
-
-##### 2. 创建数据库
+### 1. 创建数据库
 
 ```sql
 CREATE DATABASE fastapiwebadmin CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 ```
 
-##### 3. 配置环境
+### 2. 后端
 
 ```bash
 cd backend
 
-# 复制配置文件
-cp .env.example .env
+# 安装依赖
+uv sync
 
-# 编辑 .env 文件，修改数据库连接信息
-# MYSQL_DATABASE_URI=mysql+asyncmy://用户名:密码@localhost:3306/fastapiwebadmin
-# REDIS_URI=redis://localhost:6379/4
+# 配置环境（首次）
+cp env/.env.dev.example env/.env.dev
+# 编辑 env/.env.dev：数据库、Redis 等
+
+# 方式 A：开发菜单（Windows）
+run_win.bat
+
+# 方式 B：命令行
+uv run main.py run --env=dev
 ```
 
-##### 4. 安装依赖
+服务地址：
+
+- API：http://127.0.0.1:8100
+- 文档：http://127.0.0.1:8100/docs
+
+**Linux 快捷脚本：**
 
 ```bash
-# 使用国内镜像源加速
-pip install -r requirements -i https://mirrors.aliyun.com/pypi/simple
+./run_linux.sh sync    # 安装依赖
+./run_linux.sh dev     # 启动开发服务
 ```
 
-##### 5. 初始化数据库
-
-```bash
-# 一键初始化（推荐）
-python cli.py init-db
-
-# 或手动使用 Alembic
-alembic upgrade head
-python cli.py init-data
-```
-
-##### 6. 启动后端服务
-
-```bash
-# 开发模式
-python main.py
-
-# 生产模式
-gunicorn main:app -w 4 -k uvicorn.workers.UvicornWorker -b 0.0.0.0:8100
-```
-
-##### 7. 启动 Celery（可选）
-
-```bash
-# Windows 启动 Worker（单线程）
-celery -A celery_worker.worker.celery worker --pool=solo -l INFO
-
-# Linux 启动 Worker（多线程）
-celery -A celery_worker.worker.celery worker --loglevel=INFO -c 10 -P solo -n fastapiwebadmin-celery-worker
-
-# 启动定时任务调度器
-celery -A celery_worker.worker.celery beat -S celery_worker.scheduler.schedulers:DatabaseScheduler -l INFO
-
-# 启动心跳监控
-celery -A celery_worker.worker.celery beat -l INFO
-```
-
-#### 前端部署
-
-##### 1. 环境准备
-
-```bash
-# 确保已安装 Node.js 18.15.0
-node -v  # v18.15.0
-```
-
-##### 2. 安装依赖管理工具
-
-```bash
-# 安装 cnpm（使用淘宝镜像）
-npm install -g cnpm --registry=https://registry.npm.taobao.org
-
-# 或安装 yarn
-npm install -g yarn
-```
-
-##### 3. 安装项目依赖
+### 3. 前端
 
 ```bash
 cd frontend
-
-# 使用 cnpm
-cnpm install
-
-# 或使用 yarn
-yarn install
+yarn install    # 或 npm install
+yarn dev        # 开发：http://localhost:3000
 ```
 
-##### 4. 启动开发服务器
+开发模式下 Vite 将 `/api` 代理到 `http://127.0.0.1:8100`，无需改接口路径。
+
+### 4. 首次初始化数据库
+
+**开发环境（推荐）：** 启动时若库为空，会自动建表并导入 `db_script/db_init.sql`。
+
+也可手动重置（会删表重建）：
 
 ```bash
-# 使用 cnpm
-cnpm run dev
-
-# 或使用 yarn
-yarn dev
+cd backend
+uv run main.py reset --env=dev
 ```
 
-访问：http://localhost:5173
+**生产环境：** 关闭 `AUTO_CREATE_TABLES` 与 `AUTO_SEED_DATA`，使用 Alembic（见下文）。
 
-##### 5. 生产构建
+---
+
+## CLI 命令参考
+
+所有命令在 `backend/` 目录执行：
 
 ```bash
-# 使用 cnpm
-cnpm run build
+uv run main.py <command> --env=dev|prod
+```
 
-# 或使用 yarn
+| 命令 | 说明 |
+|------|------|
+| `run` | 启动 HTTP 服务 |
+| `revision -m "描述"` | 根据模型变更生成迁移脚本 |
+| `upgrade` | 应用迁移至最新（head） |
+| `upgrade -r <revision>` | 升级到指定版本 |
+| `downgrade` | 回滚一个版本 |
+| `current` | 查看当前迁移版本 |
+| `history` | 查看迁移历史 |
+| `reset` | 删表重建 + 种子数据（仅 dev） |
+
+---
+
+## 数据库与迁移
+
+### 开发环境（默认，推荐）
+
+开启 `AUTO_CREATE_TABLES=True` 后，**每次启动**会自动：
+
+1. 扫描全项目各模块下的 `model.py`
+2. 对缺失表执行 `create_all`（含新业务插件）
+
+新增业务模块时：**写好 `model.py` 重启服务即可**，不必改 Alembic 配置。
+
+### 生产环境
+
+关闭自动建表，使用 Alembic 显式迁移：
+
+```ini
+AUTO_CREATE_TABLES = False
+AUTO_SEED_DATA = False
+```
+
+### Alembic（可选，用于生产版本管理）
+
+迁移目录：`backend/app/alembic/versions/`。执行 `revision` 时同样通过 `ImportUtil` 自动发现模型，**无需手动注册**。
+
+### 日常模型变更流程
+
+1. **修改 ORM 模型**（`app/models/`）
+2. **生成迁移脚本**
+
+```bash
+cd backend
+uv run main.py revision --env=dev -m "add xxx column"
+```
+
+3. **检查生成的文件**（`app/alembic/versions/xxxx_*.py`），确认 `upgrade()` / `downgrade()` 无误
+4. **应用迁移**
+
+```bash
+uv run main.py upgrade --env=dev
+```
+
+5. **提交迁移文件到 Git**（与模型变更同一 PR）
+
+### 生产发布
+
+```bash
+# 1. 部署代码
+# 2. 备份数据库
+# 3. 应用迁移
+uv run main.py upgrade --env=prod
+# 4. 重启服务
+```
+
+生产环境请设置：
+
+```ini
+AUTO_CREATE_TABLES = False
+AUTO_SEED_DATA = False
+```
+
+避免 `create_all` 与 Alembic 状态不一致。
+
+### 回滚
+
+```bash
+uv run main.py downgrade --env=dev        # 回滚 1 个版本
+uv run main.py downgrade --env=dev -r -2  # 回滚 2 个版本
+uv run main.py history --env=dev          # 查看版本链
+```
+
+### 开发环境一键重置
+
+当本地库混乱、种子数据异常时：
+
+```bash
+uv run main.py reset --env=dev
+```
+
+等价于：删表 → `create_tables()` → 导入 `db_init.sql`。
+
+### 新增模型检查清单
+
+- [ ] 在对应模块下创建 `model.py`，模型继承 `Base`
+- [ ] 开发环境重启服务，确认表已自动创建
+- [ ] 生产环境再执行 `revision` → `upgrade`
+
+---
+
+## 生产部署
+
+### 后端（Gunicorn + Uvicorn）
+
+```bash
+cd backend
+uv sync --no-dev
+cp env/.env.prod.example env/.env.prod
+# 编辑生产配置
+
+uv run main.py upgrade --env=prod
+
+gunicorn "main:create_app()" \
+  --factory \
+  -w 4 \
+  -k uvicorn.workers.UvicornWorker \
+  -b 0.0.0.0:8100
+```
+
+或使用 `start.sh`：
+
+```bash
+./start.sh app 8100
+```
+
+### Celery 插件（可选）
+
+异步任务已作为业务插件 `app/plugin/fea_celery/` 提供，不启用时不影响主服务。
+
+```bash
+cd backend
+
+# Worker（Windows 使用 --pool=solo）
+celery -A app.plugin.fea_celery.worker.celery worker --pool=solo -l INFO
+
+# Beat（数据库调度器）
+celery -A app.plugin.fea_celery.worker.celery beat \
+  -S app.plugin.fea_celery.scheduler.schedulers:DatabaseScheduler -l INFO
+```
+
+或使用 `start.sh`：
+
+```bash
+./start.sh celery-worker 8100
+./start.sh celery-beat 8100
+```
+
+新增任务：在 `app/plugin/fea_celery/tasks/` 下编写，并在 `plugin.toml` 的 `[celery].tasks` 中注册。
+
+### 前端
+
+```bash
+cd frontend
 yarn build
+# 将 dist/ 部署到 Nginx 等静态服务器
+```
 
-# 构建产物在 dist/ 目录
+Nginx 需将 `/api` 反向代理到后端 `8100` 端口。
+
+---
+
+## 前端开发规范（摘要）
+
+```
+frontend/src/
+├── api/              # 按模块封装 HTTP 请求
+├── views/            # 页面（system/ 为系统管理）
+├── components/       # 公共组件（synrebort-table、synrebort-card）
+├── router/           # 路由与守卫
+├── stores/           # Pinia 状态
+└── utils/request.ts  # Axios 封装
+```
+
+- 组件目录使用 **kebab-case**（如 `synrebort-table/`）
+- 全局组件在 `utils/other.ts` 注册
+- 权限按钮使用 `v-permission` 指令
+
+---
+
+## 常见问题
+
+**Q: 登录失败 / 用户不存在？**
+
+开发环境执行 `uv run main.py reset --env=dev` 重新导入种子数据。
+
+**Q: Redis 报错 `AUTH but no password is set`？**
+
+本地 Redis 无密码时，将 `env/.env.dev` 中 `REDIS_PASSWORD` 留空，`REDIS_URI` 不要带密码段。
+
+**Q: 前端请求不到后端？**
+
+确认后端已启动在 8100，且 `frontend/vite.config.ts` 代理 `/api` → `8100`。
+
+**Q: bcrypt 密码错误？**
+
+项目固定 `bcrypt==4.0.1`（与 passlib 兼容），请使用 `uv sync` 安装锁定版本。
+
+**Q: 新人误改旧目录？**
+
+`app/apis`、`app/services`、`config.py`、`cli.py` 已删除。只按本文「后端开发规范」在 `api/v1` 或 `plugin` 下开发。
+
+---
+
+## 测试
+
+```bash
+cd backend
+uv run pytest
 ```
 
 ---
 
-## 🗄️ 数据库管理
-
-### Alembic 迁移命令
-
-```bash
-# 初始化数据库（包含迁移和初始数据）
-python cli.py init-db
-
-# 生成迁移文件
-alembic revision --autogenerate -m "描述信息"
-
-# 执行迁移
-alembic upgrade head
-
-# 回滚迁移
-alembic downgrade -1
-
-# 查看迁移历史
-alembic history
-
-# 查看当前版本
-alembic current
-```
-
-### 数据库脚本
-
-如果需要手动导入数据库：
-
-```bash
-# 导入初始化脚本
-mysql -u root -p fastapiwebadmin < backend/script/db_init.sql
-```
-
----
-
-## 📸 系统截图
+## 系统截图
 
 ### 登录页
 ![登录页](static/img/func.png)
@@ -525,328 +552,18 @@ mysql -u root -p fastapiwebadmin < backend/script/db_init.sql
 ### 路由菜单管理
 ![路由菜单管理](static/img/report.png)
 
-### 接口管理
-![接口管理1](static/img/case.png)
-![接口管理2](static/img/cass.png)
-
-### 个人中心
-![个人中心1](static/img/ge.png)
-![个人中心2](static/img/gen.png)
-
-### 主题切换
-![主题切换1](static/img/csssb.png)
-![主题切换2](static/img/csssa.png)
-![主题切换3](static/img/qy.png)
-
 ---
 
-## 🔧 开发指南
+## 开源协议
 
-### 后端开发
+本项目采用 [MIT](LICENSE) 协议。
 
-#### 添加新的 API 接口
+## 相关链接
 
-1. 在 `app/models/` 创建数据模型
-2. 在 `app/schemas/` 创建 Pydantic Schema
-3. 在 `app/services/` 实现业务逻辑
-4. 在 `app/apis/v1/` 创建路由处理器
-
-#### 示例：创建用户管理接口
-
-```python
-# app/models/user.py
-from app.db.base import Base
-from sqlalchemy import Column, String, Integer
-
-class User(Base):
-    __tablename__ = "users"
-    id = Column(Integer, primary_key=True)
-    username = Column(String(50), unique=True)
-    email = Column(String(100))
-
-# app/schemas/user.py
-from pydantic import BaseModel
-
-class UserCreate(BaseModel):
-    username: str
-    email: str
-
-class UserResponse(BaseModel):
-    id: int
-    username: str
-    email: str
-
-# app/services/user.py
-from app.models.user import User
-from app.schemas.user import UserCreate
-
-class UserService:
-    async def create_user(self, user_data: UserCreate):
-        # 业务逻辑
-        pass
-
-# app/apis/v1/user.py
-from fastapi import APIRouter, Depends
-from app.services.user import UserService
-
-router = APIRouter()
-
-@router.post("/users", response_model=UserResponse)
-async def create_user(user: UserCreate):
-    service = UserService()
-    return await service.create_user(user)
-```
-
-### 前端开发
-
-#### 添加新页面
-
-1. 在 `src/views/` 创建页面组件
-2. 在 `src/router/routes.ts` 配置路由
-3. 在 `src/api/` 创建接口调用
-4. 在后台菜单管理中配置菜单
-
-#### 示例：创建用户列表页面
-
-```typescript
-// src/api/user.ts
-import request from './request'
-
-export const getUserList = (params: any) => {
-  return request.get('/api/v1/users', { params })
-}
-
-// src/views/system/user/index.vue
-<template>
-  <div class="user-container">
-    <el-table :data="userList">
-      <el-table-column prop="username" label="用户名" />
-      <el-table-column prop="email" label="邮箱" />
-    </el-table>
-  </div>
-</template>
-
-<script setup lang="ts">
-import { ref, onMounted } from 'vue'
-import { getUserList } from '@/api/user'
-
-const userList = ref([])
-
-onMounted(async () => {
-  const res = await getUserList({})
-  userList.value = res.data
-})
-</script>
-
-// src/router/routes.ts
-{
-  path: '/system/user',
-  name: 'SystemUser',
-  component: () => import('@/views/system/user/index.vue'),
-  meta: { title: '用户管理', permission: 'system:user:list' }
-}
-```
-
-#### 权限控制
-
-```vue
-<!-- 按钮级权限控制 -->
-<el-button v-permission="'user:create'">新增用户</el-button>
-<el-button v-permission="'user:edit'">编辑</el-button>
-<el-button v-permission="'user:delete'">删除</el-button>
-```
-
----
-
-## 🧪 测试
-
-### 后端测试
-
-```bash
-cd backend
-
-# 运行所有测试
-pytest
-
-# 运行单个测试文件
-pytest tests/test_user.py
-
-# 生成覆盖率报告
-pytest --cov=app --cov-report=html
-
-# 查看覆盖率报告
-open htmlcov/index.html
-```
-
-### 前端测试
-
-```bash
-cd frontend
-
-# 运行单元测试
-npm run test
-
-# 运行 E2E 测试
-npm run test:e2e
-```
-
----
-
-## 📦 部署
-
-### 生产环境部署
-
-#### 使用 Docker Compose（推荐）
-
-```bash
-# 生产环境配置
-docker-compose -f docker-compose.prod.yml up -d
-
-# 查看日志
-docker-compose logs -f backend
-
-# 重启服务
-docker-compose restart backend
-```
-
-#### 手动部署
-
-**后端部署：**
-
-```bash
-# 使用 Gunicorn + Uvicorn
-gunicorn main:app \
-  -w 4 \
-  -k uvicorn.workers.UvicornWorker \
-  -b 0.0.0.0:8100 \
-  --access-logfile logs/access.log \
-  --error-logfile logs/error.log
-```
-
-**前端部署：**
-
-```bash
-# 构建
-npm run build
-
-# 使用 Nginx 部署
-# 将 dist/ 目录内容复制到 Nginx 静态目录
-cp -r dist/* /usr/share/nginx/html/
-```
-
-**Nginx 配置示例：**
-
-```nginx
-server {
-    listen 80;
-    server_name your-domain.com;
-
-    # 前端静态文件
-    location / {
-        root /usr/share/nginx/html;
-        try_files $uri $uri/ /index.html;
-    }
-
-    # 后端 API 代理
-    location /api {
-        proxy_pass http://localhost:8100;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-    }
-}
-```
-
----
-
-## 🛠️ 常见问题
-
-### 后端问题
-
-**Q: 数据库连接失败？**
-
-A: 检查 `.env` 文件中的数据库配置，确保 MySQL 服务已启动。
-
-**Q: Redis 连接失败？**
-
-A: 确保 Redis 服务已启动，检查 `REDIS_URI` 配置。
-
-**Q: Celery 任务不执行？**
-
-A: 确保 Celery Worker 和 Beat 都已启动，检查 Redis 连接。
-
-### 前端问题
-
-**Q: 启动报错 "Cannot find module"？**
-
-A: 删除 `node_modules` 和 `package-lock.json`，重新安装依赖。
-
-**Q: 接口请求 404？**
-
-A: 检查 `src/config/` 中的 API 地址配置。
-
-**Q: 路由权限不生效？**
-
-A: 确保后台已配置菜单权限，并分配给对应角色。
-
----
-
-## 🤝 贡献指南
-
-欢迎贡献代码！请遵循以下步骤：
-
-1. Fork 本仓库
-2. 创建特性分支 (`git checkout -b feature/AmazingFeature`)
-3. 提交更改 (`git commit -m 'Add some AmazingFeature'`)
-4. 推送到分支 (`git push origin feature/AmazingFeature`)
-5. 提交 Pull Request
-
-### 代码规范
-
-**后端：**
-- 遵循 PEP 8 规范
-- 使用类型注解
-- 编写单元测试
-
-**前端：**
-- 遵循 Vue 3 风格指南
-- 使用 TypeScript
-- 组件命名使用 PascalCase
-
----
-
-## 📄 开源协议
-
-本项目采用 [MIT](LICENSE) 协议开源。
-
----
-
-## 🔗 相关链接
-
-- **GitHub**: https://github.com/rebort-hub/fastapiwebadmin
-- **FastAPI 文档**: https://fastapi.tiangolo.com/
-- **Vue 3 文档**: https://vuejs.org/
-- **Element Plus 文档**: https://element-plus.org/
-
----
-
-## 💬 交流群
-
-### 微信群
-<img src="static/img/weixin.png" width="200" alt="微信群" />
-
-### QQ 群
-<img src="static/img/qq.png" width="200" alt="QQ群" />
-
-欢迎加入交流群，一起学习进步！
-
----
-
-## 💌 支持作者
-
-如果这个项目对你有帮助，请在 [GitHub](https://github.com/rebort-hub/fastapiwebadmin) 上给个 ⭐ Star 支持一下！
-
-你的支持是我持续更新的动力 🚀
+- [FastAPI 文档](https://fastapi.tiangolo.com/)
+- [Vue 3 文档](https://vuejs.org/)
+- [Element Plus](https://element-plus.org/)
+- [uv 文档](https://docs.astral.sh/uv/)
 
 ---
 
