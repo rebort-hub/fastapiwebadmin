@@ -6,7 +6,8 @@
   </svg>
 </template>
 
-<script setup lang="ts" name="GiteeIcon"></script>
+<script setup lang="ts">defineOptions({ name: 'GiteeIcon' })
+</script>
 
 <style scoped>
 .oauth-icon {

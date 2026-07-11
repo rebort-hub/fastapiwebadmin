@@ -29,7 +29,8 @@
   </transition>
 </template>
 
-<script setup lang="ts" name="layoutTagsViewContextmenu">
+<script setup lang="ts">
+defineOptions({ name: 'layoutTagsViewContextmenu' })
 import {computed, reactive, onMounted, onUnmounted, watch} from 'vue';
 
 // 定义父组件传过来的值

@@ -34,5 +34,13 @@ class OperationLog(Base):
             q.append(cls.request_method == params.request_method)
         if params.request_ip:
             q.append(cls.request_ip.like(f"%{params.request_ip}%"))
+
+        from app.core.data_scope import DataScopeFilter
+
+        scope = await DataScopeFilter.for_request()
+        scope_clause = scope.log_user_clause(cls.user_id)
+        if scope_clause is not None:
+            q.append(scope_clause)
+
         stmt = select(*cls.get_table_columns()).where(*q).order_by(cls.creation_date.desc())
         return await cls.pagination(stmt)

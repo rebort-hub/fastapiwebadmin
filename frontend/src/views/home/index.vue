@@ -160,7 +160,8 @@
   </div>
 </template>
 
-<script setup lang="ts" name="home">
+<script setup lang="ts">
+defineOptions({ name: 'home' })
 import { ref, onMounted, onUnmounted, computed } from 'vue';
 import { useRouter } from 'vue-router';
 import { storeToRefs } from 'pinia';

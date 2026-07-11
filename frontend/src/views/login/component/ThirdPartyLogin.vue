@@ -24,7 +24,8 @@
   </div>
 </template>
 
-<script setup lang="ts" name="ThirdPartyLogin">
+<script setup lang="ts">
+defineOptions({ name: 'ThirdPartyLogin' })
 import type { Component } from 'vue';
 import type { OAuthProvider } from '/@/utils/oauth';
 import WechatIcon from '/@/views/login/component/oauth-icons/WechatIcon.vue';

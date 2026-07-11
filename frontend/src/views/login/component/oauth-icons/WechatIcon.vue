@@ -6,7 +6,8 @@
   </svg>
 </template>
 
-<script setup lang="ts" name="WechatIcon"></script>
+<script setup lang="ts">defineOptions({ name: 'WechatIcon' })
+</script>
 
 <style scoped>
 .oauth-icon {

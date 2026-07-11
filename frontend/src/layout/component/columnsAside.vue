@@ -44,7 +44,8 @@
   </div>
 </template>
 
-<script setup lang="ts" name="layoutColumnsAside">
+<script setup lang="ts">
+defineOptions({ name: 'layoutColumnsAside' })
 import {reactive, ref, onMounted, nextTick, watch, onUnmounted} from 'vue';
 import {useRoute, useRouter, onBeforeRouteUpdate, RouteRecordRaw} from 'vue-router';
 import {storeToRefs} from "/@/stores";

@@ -92,7 +92,10 @@ async def update_user_avatar(
 
 
 @UserRouter.post('/getUserInfo', description="获取用户信息")
-async def get_user_info(params: UserDel, _auth=Depends(AuthPermission(["user:query"]))):
+async def get_user_info(
+    params: UserDel,
+    _auth=Depends(AuthPermission(["user:query"], check_data_scope=False)),
+):
     """
     根据用户 id 获取用户信息
     :param params: 包含用户 id
@@ -131,12 +134,13 @@ async def get_button_permissions():
 async def debug_user_permissions():
     """调试接口：查看用户的完整权限数据"""
     from app.api.v1.system.menu.model import Menu
-    from app.api.v1.system.roles.model import Roles
+    from app.api.v1.system.roles.model import RoleMenu, Roles
+    from app.api.v1.system.user.model import UserRole
     from app.utils.current_user import current_user
     
-    # 获取当前用户
     token_user_info = await current_user()
     user_info = await User.get(token_user_info.get("id"))
+    role_ids = await UserRole.get_role_ids_by_user(user_info.id)
     
     debug_info = {
         "user": {
@@ -144,7 +148,7 @@ async def debug_user_permissions():
             "username": user_info.username,
             "user_type": user_info.user_type,
             "user_type_name": "超级管理员" if user_info.user_type == 10 else "普通用户",
-            "roles": user_info.roles
+            "roles": role_ids,
         },
         "buttons_in_db": [],
         "user_roles": [],
@@ -163,22 +167,16 @@ async def debug_user_permissions():
     
     # 2. 获取用户权限
     if user_info.user_type == 10:
-        # 超级管理员
         debug_info["final_auth_list"] = [btn.get('roles') for btn in all_buttons if btn.get('roles')]
     else:
-        # 普通用户
-        if user_info.roles:
-            roles = await Roles.get_roles_by_ids(user_info.roles)
+        if role_ids:
+            roles = await Roles.get_roles_by_ids(role_ids)
+            menu_map = await RoleMenu.get_menu_ids_map(role_ids)
             debug_info["user_roles"] = [
-                {"id": r.get("id"), "name": r.get("name"), "menus": r.get("menus")}
+                {"id": r.get("id"), "name": r.get("name"), "menus": menu_map.get(r.get("id"), [])}
                 for r in roles
             ]
-            
-            menu_ids = []
-            for role in roles:
-                if role.get('menus'):
-                    menu_ids += list(map(int, role['menus'].split(',')))
-            
+            menu_ids = await RoleMenu.get_menu_ids_by_roles(role_ids)
             debug_info["assigned_menu_ids"] = list(set(menu_ids))
             
             if menu_ids:

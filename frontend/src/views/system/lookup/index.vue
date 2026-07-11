@@ -152,7 +152,8 @@
   </div>
 </template>
 
-<script lang="ts" setup name="SystemLookup">
+<script lang="ts" setup>
+defineOptions({ name: 'SystemLookup' })
 import {h, nextTick, onMounted, reactive, ref} from 'vue';
 import {ElButton, ElMessage, ElMessageBox} from 'element-plus';
 import {useLookupApi} from '/@/api/useSystemApi/lookup';

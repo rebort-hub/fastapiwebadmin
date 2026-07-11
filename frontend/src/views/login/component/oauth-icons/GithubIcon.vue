@@ -6,7 +6,8 @@
   </svg>
 </template>
 
-<script setup lang="ts" name="GithubIcon"></script>
+<script setup lang="ts">defineOptions({ name: 'GithubIcon' })
+</script>
 
 <style scoped>
 .oauth-icon {

@@ -30,7 +30,8 @@
   </el-menu>
 </template>
 
-<script setup lang="ts" name="navMenuVertical">
+<script setup lang="ts">
+defineOptions({ name: 'navMenuVertical' })
 import {computed, defineAsyncComponent, onMounted, reactive, watch} from 'vue';
 import {onBeforeRouteUpdate, RouteRecordRaw, useRoute} from 'vue-router';
 import {storeToRefs} from "/@/stores";

@@ -6,7 +6,8 @@
   </div>
 </template>
 
-<script setup lang="ts" name="layoutCloseFull">
+<script setup lang="ts">
+defineOptions({ name: 'layoutCloseFull' })
 import {storeToRefs} from "/@/stores";
 import {useTagsViewRoutes} from '/@/stores/tagsViewRoutes';
 

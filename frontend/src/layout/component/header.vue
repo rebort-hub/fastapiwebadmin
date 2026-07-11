@@ -4,7 +4,8 @@
 	</el-header>
 </template>
 
-<script setup lang="ts" name="layoutHeader">
+<script setup lang="ts">
+defineOptions({ name: 'layoutHeader' })
 import {storeToRefs} from "/@/stores";
 import {useTagsViewRoutes} from '/@/stores/tagsViewRoutes';
 import NavBarsIndex from '/@/layout/navBars/index.vue';

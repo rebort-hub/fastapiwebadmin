@@ -50,6 +50,32 @@ class InitializeData:
             "ALTER TABLE `file_info` ADD COLUMN `file_hash` varchar(64) NULL COMMENT '文件MD5'",
             "ALTER TABLE `file_info` ADD COLUMN `uploader_id` int NULL COMMENT '上传者ID'",
             "ALTER TABLE `file_info` ADD COLUMN `uploader_name` varchar(64) NULL COMMENT '上传者'",
+            "ALTER TABLE `roles` ADD COLUMN `data_scope` int NOT NULL DEFAULT 4 COMMENT '数据权限范围(1:仅本人 2:本部门 3:本部门及以下 4:全部 5:自定义)'",
+        ]
+        create_tables_sql = [
+            """
+            CREATE TABLE IF NOT EXISTS `role_depts` (
+              `role_id` int NOT NULL COMMENT '角色ID',
+              `dept_id` int NOT NULL COMMENT '部门ID',
+              PRIMARY KEY (`role_id`, `dept_id`)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='角色自定义数据权限部门'
+            """,
+            """
+            CREATE TABLE IF NOT EXISTS `user_roles` (
+              `user_id` bigint NOT NULL COMMENT '用户ID',
+              `role_id` int NOT NULL COMMENT '角色ID',
+              PRIMARY KEY (`user_id`, `role_id`),
+              KEY `idx_user_roles_role_id` (`role_id`)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='用户角色关联表'
+            """,
+            """
+            CREATE TABLE IF NOT EXISTS `role_menus` (
+              `role_id` int NOT NULL COMMENT '角色ID',
+              `menu_id` int NOT NULL COMMENT '菜单ID',
+              PRIMARY KEY (`role_id`, `menu_id`),
+              KEY `idx_role_menus_menu_id` (`menu_id`)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='角色菜单关联表'
+            """,
         ]
         try:
             conn = pymysql.connect(
@@ -66,11 +92,70 @@ class InitializeData:
                     cursor.execute(sql)
                 except Exception:
                     pass
+            for sql in create_tables_sql:
+                try:
+                    cursor.execute(sql)
+                except Exception:
+                    pass
+            self._migrate_rbac_data(cursor)
             conn.commit()
             cursor.close()
             conn.close()
         except Exception as exc:
             log.warning(f"schema patch 跳过: {exc}")
+
+    @staticmethod
+    def _migrate_rbac_data(cursor) -> None:
+        """将历史 JSON/CSV 权限数据迁移到规范关联表。"""
+        from app.api.v1.system.roles.model import RoleMenu
+        from app.api.v1.system.user.model import UserRole
+
+        try:
+            cursor.execute("SELECT COUNT(*) AS cnt FROM user_roles")
+            user_role_count = cursor.fetchone()[0]
+            if user_role_count == 0 and InitializeData._column_exists(cursor, "user", "roles"):
+                cursor.execute(
+                    "SELECT id, roles FROM user WHERE enabled_flag = 1 AND roles IS NOT NULL"
+                )
+                migrated = UserRole.migrate_from_legacy_json(cursor, cursor.fetchall())
+                if migrated:
+                    log.info(f"RBAC 迁移: user_roles 写入 {migrated} 条")
+
+            cursor.execute("SELECT COUNT(*) AS cnt FROM role_menus")
+            role_menu_count = cursor.fetchone()[0]
+            if role_menu_count == 0 and InitializeData._column_exists(cursor, "roles", "menus"):
+                cursor.execute(
+                    "SELECT id, menus FROM roles WHERE enabled_flag = 1 AND menus IS NOT NULL AND menus <> ''"
+                )
+                migrated = RoleMenu.migrate_from_legacy_csv(cursor, cursor.fetchall())
+                if migrated:
+                    log.info(f"RBAC 迁移: role_menus 写入 {migrated} 条")
+
+            InitializeData._drop_legacy_rbac_columns(cursor)
+        except Exception as exc:
+            log.warning(f"RBAC 数据迁移跳过: {exc}")
+
+    @staticmethod
+    def _column_exists(cursor, table: str, column: str) -> bool:
+        cursor.execute(f"SHOW COLUMNS FROM `{table}` LIKE %s", (column,))
+        return cursor.fetchone() is not None
+
+    @staticmethod
+    def _drop_legacy_rbac_columns(cursor) -> None:
+        """关联表有数据后，移除历史冗余字段。"""
+        drops = []
+        cursor.execute("SELECT COUNT(*) FROM user_roles")
+        if cursor.fetchone()[0] > 0 and InitializeData._column_exists(cursor, "user", "roles"):
+            drops.append("ALTER TABLE `user` DROP COLUMN `roles`")
+        cursor.execute("SELECT COUNT(*) FROM role_menus")
+        if cursor.fetchone()[0] > 0 and InitializeData._column_exists(cursor, "roles", "menus"):
+            drops.append("ALTER TABLE `roles` DROP COLUMN `menus`")
+        for sql in drops:
+            try:
+                cursor.execute(sql)
+                log.info(f"RBAC 清理: {sql}")
+            except Exception as exc:
+                log.warning(f"RBAC 清理跳过: {exc}")
 
     def _execute_full_sql_file(self, sql_file: Path) -> tuple[int, int]:
         """执行完整 SQL 文件（含 DDL + INSERT），与 Navicat 导出格式兼容。"""

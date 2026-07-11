@@ -17,7 +17,7 @@ class UserIn(BaseModel):
     remarks: typing.Optional[str] = Field(None, description='用户描述')
     avatar: typing.Optional[str] = Field(None, description='头像')
     tags: typing.List = Field(None, description='标签')
-    roles: typing.List = Field(None, description='权限')
+    roles: typing.List = Field(None, description='角色ID列表，写入 user_roles 关联表')
     password: typing.Optional[str] = Field(description='标签', default=decrypt_rsa_password("123456"))
     dept_id: typing.Optional[int] = Field(None, description='所属部门ID')
 
@@ -34,6 +34,7 @@ class UserQuery(BaseSchema):
     username: typing.Optional[str] = Field(None, description='用户名')
     nickname: typing.Optional[str] = Field(None, description='昵称')
     user_ids: typing.List[int] = Field(None, description='用户id')
+    skip_data_scope: typing.Optional[bool] = Field(False, description='跳过数据权限过滤')
 
 
 class UserLogin(BaseModel):
@@ -53,35 +54,3 @@ class UserResetPwd(BaseModel):
 class UserUpdateAvatar(BaseModel):
     id: int = Field(..., description='用户id')
     avatar: str = Field(..., description='头像URL')
-
-
-class UserLoginRecordIn(BaseModel):
-    token: typing.Optional[str] = Field(None, description='token')
-    code: typing.Optional[str] = Field(None, description="账号")
-    user_id: typing.Optional[int] = Field(None, description="用户id")
-    user_name: typing.Optional[str] = Field(None, description="用户名称")
-    logout_type: typing.Optional[str] = Field(None, description="登出类型")
-    login_type: typing.Optional[str] = Field(None, description="登录类型")
-    login_time: typing.Optional[str] = Field(None, description="登录时间")
-    logout_time: typing.Optional[str] = Field(None, description="登出时间")
-    login_ip: typing.Optional[str] = Field(None, description="登录ip")
-    ret_msg: typing.Optional[str] = Field(None, description="返回信息")
-    ret_code: typing.Optional[str] = Field(None, description="返回code")
-    address: typing.Optional[str] = Field(None, description="地址")
-    source_type: typing.Optional[str] = Field(None, description="来源")
-
-
-class UserLoginRecordQuery(BaseSchema):
-    token: typing.Optional[str] = Field(None, description='token')
-    code: typing.Optional[str] = Field(None, description="账号")
-    user_id: typing.Optional[int] = Field(None, description="用户id")
-    user_name: typing.Optional[str] = Field(None, description="用户名称")
-    logout_type: typing.Optional[str] = Field(None, description="登出类型")
-    login_type: typing.Optional[str] = Field(None, description="登录类型")
-    login_time: typing.Optional[str] = Field(None, description="登录时间")
-    logout_time: typing.Optional[str] = Field(None, description="登出时间")
-    login_ip: typing.Optional[str] = Field(None, description="登录ip")
-    ret_msg: typing.Optional[str] = Field(None, description="返回信息")
-    ret_code: typing.Optional[str] = Field(None, description="返回code")
-    address: typing.Optional[str] = Field(None, description="地址")
-    source_type: typing.Optional[str] = Field(None, description="来源")

@@ -8,7 +8,7 @@ from sqlalchemy import MetaData, engine_from_config, pool
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
 
 from app.config.setting import get_settings
-from app.models.base import Base
+from app.models.base import Base, DeclarativeRoot
 from app.utils.import_util import ImportUtil
 
 config = context.config
@@ -19,11 +19,11 @@ if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
 # 重置 metadata，避免重复注册；随后自动扫描全部 model 文件
-if Base.metadata.tables:
-    Base.metadata = MetaData()
+if DeclarativeRoot.metadata.tables:
+    DeclarativeRoot.metadata = MetaData()
 
-found_models = ImportUtil.find_models(Base)
-target_metadata = Base.metadata
+found_models = ImportUtil.find_models(DeclarativeRoot)
+target_metadata = DeclarativeRoot.metadata
 print(f"自动发现 {len(found_models)} 个模型，{len(target_metadata.tables)} 张表")
 
 

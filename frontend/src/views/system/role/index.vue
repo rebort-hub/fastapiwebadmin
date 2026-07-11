@@ -19,20 +19,40 @@
       />
     </el-card>
     <SaveOrUpdateRole ref="SaveOrUpdateRoleRef" @getList="getList"/>
+    <PermissionDrawer
+      v-model="state.permissionDrawer.visible"
+      :role-id="state.permissionDrawer.roleId"
+      :role-name="state.permissionDrawer.roleName"
+      @saved="getList"
+    />
   </div>
 </template>
 
-<script lang="ts" setup name="SystemRole">
+<script lang="ts" setup>
+defineOptions({ name: 'SystemRole' })
 import {h, onMounted, reactive, ref} from 'vue';
 import {ElButton, ElMessage, ElMessageBox, ElTag} from 'element-plus';
 import SaveOrUpdateRole from '/@/views/system/role/EditRole.vue';
+import PermissionDrawer from '/@/views/system/role/PermissionDrawer.vue';
 import {useRolesApi} from "/@/api/useSystemApi/roles";
 import {auth as authFunction} from '/@/utils/authFunction';
 
+const DATA_SCOPE_MAP: Record<number, { type: string; label: string }> = {
+  1: { type: 'primary', label: '仅本人数据权限' },
+  2: { type: 'info', label: '本部门数据权限' },
+  3: { type: 'warning', label: '本部门及以下数据权限' },
+  4: { type: 'success', label: '全部数据权限' },
+  5: { type: 'danger', label: '自定义数据权限' },
+};
 
 const SaveOrUpdateRoleRef = ref();
 const tableRef = ref();
 const state = reactive({
+  permissionDrawer: {
+    visible: false,
+    roleId: 0,
+    roleName: '',
+  },
   columns: [
     {
       key: 'name', label: '角色名称', width: '', align: 'center', show: true,
@@ -43,6 +63,13 @@ const state = reactive({
           onOpenSaveOrUpdate("update", row)
         }
       }, () => row.name)
+    },
+    {
+      key: 'data_scope', label: '数据权限', width: '180', align: 'center', show: true,
+      render: (row: any) => {
+        const item = DATA_SCOPE_MAP[row.data_scope] || DATA_SCOPE_MAP[4];
+        return h(ElTag, { type: item.type }, () => item.label);
+      },
     },
     {key: 'role_type', label: '权限类型', width: '', align: 'center', show: true},
     {key: 'dept_name', label: '所属部门', width: '150', align: 'center', show: true},
@@ -56,8 +83,13 @@ const state = reactive({
     {key: 'updation_date', label: '更新时间', width: '150', align: 'center', show: true},
     {key: 'updated_by_name', label: '更新人', width: '100', align: 'center', show: true},
     {
-      label: '操作', fixed: 'right', width: '140', align: 'center',
+      label: '操作', fixed: 'right', width: '220', align: 'center',
       render: (row: any) => h("div", null, [
+        h(ElButton, {
+          type: "warning",
+          onClick: () => openPermissionDrawer(row),
+          style: authFunction('role:permission') ? '' : 'display:none'
+        }, () => '分配权限'),
         h(ElButton, {
           type: "primary",
           onClick: () => {
@@ -65,7 +97,6 @@ const state = reactive({
           },
           style: authFunction('role:edit') ? '' : 'display:none'
         }, () => '编辑'),
-
         h(ElButton, {
           type: "danger",
           onClick: () => {
@@ -76,7 +107,6 @@ const state = reactive({
       ])
     },
   ],
-  // list
   listData: [],
   tableLoading: false,
   total: 0,
@@ -86,7 +116,7 @@ const state = reactive({
     name: '',
   },
 });
-// 初始化表格数据
+
 const getList = () => {
   tableRef.value.openLoading()
   useRolesApi().getList(state.listQuery)
@@ -99,18 +129,25 @@ const getList = () => {
       })
 };
 
-// 查询
 const search = () => {
   state.listQuery.page = 1
   getList()
 }
 
-// 新增或修改角色
 const onOpenSaveOrUpdate = (editType: string, row: any) => {
   SaveOrUpdateRoleRef.value.openDialog(editType, row);
 };
 
-// 删除角色
+const openPermissionDrawer = (row: any) => {
+  if (row.id === 1) {
+    ElMessage.warning('系统默认角色，不可操作');
+    return;
+  }
+  state.permissionDrawer.roleId = row.id;
+  state.permissionDrawer.roleName = row.name;
+  state.permissionDrawer.visible = true;
+};
+
 const deleted = (row: any) => {
   ElMessageBox.confirm('是否删除该条数据, 是否继续?', '提示', {
     confirmButtonText: '确认',
@@ -128,7 +165,6 @@ const deleted = (row: any) => {
       });
 };
 
-// 页面加载时
 onMounted(() => {
   getList();
 });

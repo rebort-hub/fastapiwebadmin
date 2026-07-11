@@ -6,24 +6,16 @@ from fastapi.responses import RedirectResponse
 
 from app.config.setting import settings
 from app.corelibs.custom_router import APIRouter
+from app.db import redis_pool
 from app.utils.response import HttpResponse
 
-from .oauth_service import (
-    OAuthProvider,
-    build_authorize_url,
-    complete_oauth_login,
-    oauth_error_redirect,
-    oauth_success_redirect,
-    save_oauth_state,
-    _callback_url,
-)
-from .service import CaptchaService
-from .account_service import AuthAccountService
 from .schema import EmailCodeIn, ForgetPasswordIn, RegisterIn
+from .service import AuthAccountService, CaptchaService, OAuthProvider, OAuthService
 
 AuthRouter = APIRouter(prefix="/auth", tags=["认证授权"])
 
 _OAUTH_PROVIDERS = {"wechat", "qq", "github", "gitee"}
+_OAUTH_STATE_PREFIX = "fastapiwebadmin:oauth_state:"
 
 
 @AuthRouter.get("/captcha/get", description="获取登录验证码")
@@ -67,20 +59,20 @@ async def oauth_login_redirect(
 ):
     fallback = settings.OAUTH_FRONTEND_FALLBACK
     if provider not in _OAUTH_PROVIDERS:
-        return RedirectResponse(oauth_error_redirect(fallback, "不支持的 OAuth 渠道"), status_code=302)
+        return RedirectResponse(OAuthService.error_redirect(fallback, "不支持的 OAuth 渠道"), status_code=302)
     if not redirect_uri:
-        return RedirectResponse(oauth_error_redirect(fallback, "缺少 redirect_uri 参数"), status_code=302)
+        return RedirectResponse(OAuthService.error_redirect(fallback, "缺少 redirect_uri 参数"), status_code=302)
     try:
         state = secrets.token_urlsafe(32)
-        await save_oauth_state(state=state, provider=provider, frontend_redirect=redirect_uri)
-        authorize_url = build_authorize_url(
+        await OAuthService.save_state(state=state, provider=provider, frontend_redirect=redirect_uri)
+        authorize_url = OAuthService.build_authorize_url(
             provider=provider,
-            callback_url=_callback_url(request, provider),
+            callback_url=OAuthService.callback_url(request, provider),
             state=state,
         )
         return RedirectResponse(authorize_url, status_code=302)
     except ValueError as exc:
-        return RedirectResponse(oauth_error_redirect(redirect_uri, str(exc)), status_code=302)
+        return RedirectResponse(OAuthService.error_redirect(redirect_uri, str(exc)), status_code=302)
 
 
 @AuthRouter.get("/oauth/{provider}/callback", description="第三方 OAuth 回调", include_in_schema=False)
@@ -95,9 +87,7 @@ async def oauth_callback(
     async def resolve_frontend() -> str:
         if not state:
             return fallback
-        from app.db import redis_pool
-
-        payload = await redis_pool.redis.get(f"fastapiwebadmin:oauth_state:{state}")
+        payload = await redis_pool.redis.get(f"{_OAUTH_STATE_PREFIX}{state}")
         if not payload:
             return fallback
         if isinstance(payload, dict):
@@ -105,19 +95,19 @@ async def oauth_callback(
         return fallback
 
     if provider not in _OAUTH_PROVIDERS:
-        return RedirectResponse(oauth_error_redirect(await resolve_frontend(), "不支持的 OAuth 渠道"), status_code=302)
+        return RedirectResponse(OAuthService.error_redirect(await resolve_frontend(), "不支持的 OAuth 渠道"), status_code=302)
     if not code or not state:
         return RedirectResponse(
-            oauth_error_redirect(await resolve_frontend(), "授权被取消或参数不完整"),
+            OAuthService.error_redirect(await resolve_frontend(), "授权被取消或参数不完整"),
             status_code=302,
         )
     try:
-        token, frontend = await complete_oauth_login(
+        token, frontend = await OAuthService.complete_login(
             request=request,
             provider=provider,
             code=code,
             state=state,
         )
-        return RedirectResponse(oauth_success_redirect(frontend, token), status_code=302)
+        return RedirectResponse(OAuthService.success_redirect(frontend, token), status_code=302)
     except ValueError as exc:
-        return RedirectResponse(oauth_error_redirect(await resolve_frontend(), str(exc)), status_code=302)
+        return RedirectResponse(OAuthService.error_redirect(await resolve_frontend(), str(exc)), status_code=302)

@@ -43,7 +43,8 @@
   </div>
 </template>
 
-<script setup lang="ts" name="systemDept">
+<script setup lang="ts">
+defineOptions({ name: 'systemDept' })
 import { defineAsyncComponent, ref, reactive, onMounted } from 'vue';
 import { ElMessageBox, ElMessage } from 'element-plus';
 import { useDepartmentApi } from '/@/api/useSystemApi/department';

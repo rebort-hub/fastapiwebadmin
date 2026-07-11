@@ -29,7 +29,8 @@
   </div>
 </template>
 
-<script setup lang="ts" name="layoutBreadcrumbSearch">
+<script setup lang="ts">
+defineOptions({ name: 'layoutBreadcrumbSearch' })
 import {nextTick, reactive, ref} from 'vue';
 import {useRouter} from 'vue-router';
 import {storeToRefs} from "/@/stores";

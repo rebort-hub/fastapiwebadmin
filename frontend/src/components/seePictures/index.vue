@@ -44,7 +44,8 @@
   </div>
 </template>
 
-<script setup lang="ts" name="cropper">
+<script setup lang="ts">
+defineOptions({ name: 'cropper' })
 import {reactive, nextTick, ref} from 'vue';
 import Cropper from 'cropperjs';
 import 'cropperjs/dist/cropper.css';

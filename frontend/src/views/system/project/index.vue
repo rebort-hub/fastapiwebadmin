@@ -20,7 +20,8 @@
   </div>
 </template>
 
-<script lang="ts" setup name="SystemProject">
+<script lang="ts" setup>
+defineOptions({ name: 'SystemProject' })
 import {h, onMounted, reactive, ref} from 'vue';
 import {ElButton, ElMessage, ElMessageBox} from 'element-plus';
 import EditProject from '/@/views/system/project/EditProject.vue';

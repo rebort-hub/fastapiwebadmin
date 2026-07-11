@@ -23,7 +23,8 @@
   </div>
 </template>
 
-<script setup lang="ts" name="layoutBreadcrumbUserNews">
+<script setup lang="ts">
+defineOptions({ name: 'layoutBreadcrumbUserNews' })
 import {reactive} from 'vue';
 import WeixinImg from '/@/assets/weixin.png'
 

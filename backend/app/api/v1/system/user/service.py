@@ -11,12 +11,11 @@ from app.corelibs import g
 from app.corelibs.codes import CodeEnum
 from app.corelibs.consts import TEST_USER_INFO, CACHE_DAY
 from app.db import redis_pool
-from app.api.v1.system.user.model import User
 from app.api.v1.system.menu.model import Menu
-from app.api.v1.system.roles.model import Roles
+from app.api.v1.system.user.model import User, UserRole
 from app.api.v1.system.login_record.model import UserLoginRecord
-from app.api.v1.system.user.schema import UserLogin, UserIn, UserResetPwd, UserDel, UserQuery, \
-    UserLoginRecordIn, UserLoginRecordQuery
+from app.api.v1.system.login_record.schema import LoginRecordIn
+from app.api.v1.system.user.schema import UserLogin, UserIn, UserResetPwd, UserDel, UserQuery
 from app.api.v1.system.menu.service import MenuService
 from app.api.v1.system.auth.service import CaptchaService
 from app.core.permission import PermissionService
@@ -34,15 +33,18 @@ class UserService:
     async def create_login_session(user: typing.Union[User, typing.Dict[str, typing.Any]]) -> typing.Dict[str, typing.Any]:
         """创建 Redis 登录会话。"""
         if isinstance(user, User):
+            role_ids = await UserRole.get_role_ids_by_user(user.id)
             user_info = {
                 "id": user.id,
                 "username": user.username,
                 "nickname": user.nickname,
-                "roles": user.roles or [],
+                "roles": role_ids,
                 "tags": user.tags or [],
             }
         else:
-            user_info = user
+            user_info = dict(user)
+            if user_info.get("id") and "roles" not in user_info:
+                user_info["roles"] = await UserRole.get_role_ids_by_user(user_info["id"])
 
         token = str(uuid.uuid4())
         login_time = default_serialize(datetime.now())
@@ -85,6 +87,7 @@ class UserService:
             raise ValueError(CodeEnum.WRONG_USER_NAME_OR_PASSWORD.msg)
 
         logger.info('用户 [{}] 登录了系统，状态: {}'.format(user_info["username"], user_status))
+        user_info["roles"] = await UserRole.get_role_ids_by_user(user_info["id"])
         return await UserService.create_login_session(user_info)
 
     @staticmethod
@@ -114,7 +117,7 @@ class UserService:
             source_type = f"{browser} / {os_name}".strip(" /")
 
             if record_type == 'login':
-                params = UserLoginRecordIn(
+                params = LoginRecordIn(
                     token=token,
                     code=user_token_info["username"],
                     user_id=user_token_info["id"],
@@ -142,7 +145,11 @@ class UserService:
         user_info = await User.get_user_by_name(user_params.username)
         if user_info:
             raise ValueError(CodeEnum.USERNAME_OR_EMAIL_IS_REGISTER.msg)
-        user = await User.create(**user_params.dict())
+        payload = user_params.model_dump()
+        role_ids = payload.pop("roles", None) or []
+        user = await User.create(payload)
+        user_id = user.id if hasattr(user, "id") else user.get("id")
+        await UserRole.set_user_roles(user_id, role_ids)
         return user
 
     @staticmethod
@@ -153,11 +160,11 @@ class UserService:
         :return:
         """
         data = await User.get_list(params)
-        for row in data.get("rows"):
-            roles = row.get("roles", None)
-            tags = row.get("roles", None)
-            row["roles"] = roles if roles else []
-            row["tags"] = tags if tags else []
+        user_ids = [row["id"] for row in data.get("rows", [])]
+        role_map = await UserRole.get_role_ids_map(user_ids)
+        for row in data.get("rows", []):
+            row["roles"] = role_map.get(row["id"], [])
+            row["tags"] = row.get("tags") or []
         return data
 
     @staticmethod
@@ -195,7 +202,15 @@ class UserService:
             else:
                 params.password = user_info['password']
                 
-        result = await User.create_or_update(params.dict())
+        payload = params.model_dump()
+        role_ids = payload.pop("roles", None)
+        if role_ids is None:
+            role_ids = []
+
+        result = await User.create_or_update(payload)
+        await UserRole.set_user_roles(result["id"], role_ids or [])
+        result["roles"] = await UserRole.get_role_ids_by_user(result["id"])
+
         current_user_info = await current_user()
         if current_user_info.get("id") == params.id:
             token_user_info = {
@@ -217,6 +232,7 @@ class UserService:
         :return:
         """
         try:
+            await UserRole.delete_by_user(params.id)
             return await User.delete(params.id)
         except Exception as err:
             logger.error(traceback.format_exc())
@@ -292,6 +308,7 @@ class UserService:
         user_info = await User.get(user_id, to_dict=True)
         if not user_info:
             raise ValueError('用户不存在！')
+        user_info["roles"] = await UserRole.get_role_ids_by_user(user_id)
         return user_info
 
     @staticmethod
@@ -316,13 +333,14 @@ class UserService:
             raise ValueError(CodeEnum.PARTNER_CODE_TOKEN_EXPIRED_FAIL.msg)
 
         auth_btn_list = await PermissionService.get_permission_codes(user_info)
+        role_ids = await UserRole.get_role_ids_by_user(user_info.id)
 
         return {
             "id": user_info.id,
             "avatar": user_info.avatar,
             "username": user_info.username,
             "nickname": user_info.nickname,
-            "roles": user_info.roles,
+            "roles": role_ids,
             "tags": user_info.tags,
             "user_type": user_info.user_type,
             "login_time": token_user_info.get("login_time", None),
@@ -336,43 +354,13 @@ class UserService:
         if not current_user_info:
             return []
         user_info = await User.get(current_user_info.get("id"))
-        if not user_info or not user_info.roles:
+        if not user_info:
             return []
-        menu_ids = []
-        if user_info.user_type == 10:
-            all_menu = await Menu.get_menu_all()
-            menu_ids += [i["id"] for i in all_menu]
-        else:
-            roles = await Roles.get_roles_by_ids(user_info.roles if user_info.roles else [])
-            for i in roles:
-                menu_ids += list(map(int, i["menus"].split(',')))
-            if not menu_ids:
-                return []
-            parent_menus = await Menu.get_parent_id_by_ids(list(set(menu_ids)))
-            # 前端角色只保存子节点数据，所以这里要做处理，把父级菜单也返回给前端
-            menu_ids += [i["parent_id"] for i in parent_menus]
-            all_menu = await Menu.get_menu_by_ids(list(set(menu_ids)))
+        menu_ids = await PermissionService.get_menu_ids_for_user(user_info)
+        if not menu_ids:
+            return []
+        parent_menus = await Menu.get_parent_id_by_ids(list(set(menu_ids)))
+        menu_ids += [i["parent_id"] for i in parent_menus]
+        all_menu = await Menu.get_menu_by_ids(list(set(menu_ids)))
         parent_menu = [menu for menu in all_menu if menu['parent_id'] == 0]
-        return MenuService.menu_assembly(parent_menu, all_menu) if menu_ids else []
-
-    # @staticmethod
-    # async def user_login_record(params: UserLoginRecordIn):
-    #     result = await UserLoginRecord.create_or_update(params.dict())
-    #     return result
-
-
-class LoginRecordService:
-    @staticmethod
-    async def list(params: UserLoginRecordQuery) -> typing.Dict[typing.Text, typing.Any]:
-        """
-        获取用户列表
-        :param params:  查询参数
-        :return:
-        """
-        data = await UserLoginRecord.get_list(params)
-        for row in data.get("rows"):
-            if not row["roles"]:
-                row["roles"] = []
-            else:
-                row["roles"] = list(map(int, row["roles"].split(',')))
-        return data
+        return MenuService.menu_assembly(parent_menu, all_menu)

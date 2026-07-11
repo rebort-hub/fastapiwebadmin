@@ -49,7 +49,8 @@
   </div>
 </template>
 
-<script setup lang="ts" name="layoutTagsView">
+<script setup lang="ts">
+defineOptions({ name: 'layoutTagsView' })
 import {
   computed,
   defineAsyncComponent,

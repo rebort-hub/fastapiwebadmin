@@ -10,7 +10,8 @@
   </div>
 </template>
 
-<script setup lang="ts" name="layoutAside">
+<script setup lang="ts">
+defineOptions({ name: 'layoutAside' })
 import {computed, defineAsyncComponent, onBeforeMount, reactive, ref, watch} from 'vue';
 import {storeToRefs} from "/@/stores";
 import {useRoutesList} from '/@/stores/routesList';

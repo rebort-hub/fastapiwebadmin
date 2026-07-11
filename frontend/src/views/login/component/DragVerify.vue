@@ -18,7 +18,8 @@
   </div>
 </template>
 
-<script setup lang="ts" name="DragVerify">
+<script setup lang="ts">
+defineOptions({ name: 'DragVerify' })
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 
 const HANDLER_SIZE = 40;

@@ -137,7 +137,8 @@
   </div>
 </template>
 
-<script lang="ts" setup name="SaveOrUpdateMenu">
+<script lang="ts" setup>
+defineOptions({ name: 'SaveOrUpdateMenu' })
 import {onMounted, reactive} from 'vue';
 import IconSelector from '/@/components/iconSelector/index.vue';
 import {useMenuApi} from "/@/api/useSystemApi/menu";

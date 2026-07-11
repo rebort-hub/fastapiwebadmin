@@ -20,7 +20,8 @@
   </div>
 </template>
 
-<script setup lang="ts" name="error">
+<script setup lang="ts">
+defineOptions({ name: 'error' })
 import {useRouter} from 'vue-router';
 import Image404 from "/@/assets/error/404.svg"
 import {Session} from "/@/utils/storage";

@@ -35,7 +35,8 @@
   </div>
 </template>
 
-<script setup lang="ts" name="layoutUpgrade">
+<script setup lang="ts">
+defineOptions({ name: 'layoutUpgrade' })
 import {reactive, computed, onMounted} from 'vue';
 import {storeToRefs} from "/@/stores";
 import {useThemeConfig} from '/@/stores/themeConfig';

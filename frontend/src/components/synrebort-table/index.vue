@@ -151,7 +151,8 @@
         @current-change="currentPageChange"/>
   </div>
 </template>
-<script setup lang="ts" name="synrebort-table">
+<script setup lang="ts">
+defineOptions({ name: 'synrebort-table' })
 import {computed, defineAsyncComponent, reactive} from 'vue'
 import {formatLookup} from '/@/utils/lookup'
 

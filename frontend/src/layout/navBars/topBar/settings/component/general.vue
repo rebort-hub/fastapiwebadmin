@@ -46,6 +46,6 @@ import {
 </template>
 
 <style scoped lang="scss">
-@import "../index";
+@use "../index" as *;
 
 </style>

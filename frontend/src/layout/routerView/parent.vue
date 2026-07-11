@@ -22,7 +22,8 @@
   </div>
 </template>
 
-<script setup lang="ts" name="layoutParentView">
+<script setup lang="ts">
+defineOptions({ name: 'layoutParentView' })
 import {
   computed,
   defineAsyncComponent,

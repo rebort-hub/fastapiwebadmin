@@ -13,7 +13,8 @@
 	</div>
 </template>
 
-<script setup lang="ts" name="iconSelectorList">
+<script setup lang="ts">
+defineOptions({ name: 'iconSelectorList' })
 // 定义父组件传过来的值
 const props = defineProps({
 	// 图标列表数据

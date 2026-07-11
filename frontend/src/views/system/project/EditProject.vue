@@ -31,7 +31,8 @@
   </div>
 </template>
 
-<script lang="ts" setup name="EditProject">
+<script lang="ts" setup>
+defineOptions({ name: 'EditProject' })
 import {reactive, ref} from 'vue';
 import {ElMessage} from 'element-plus';
 import {useProjectApi} from '/@/api/useSystemApi/project';

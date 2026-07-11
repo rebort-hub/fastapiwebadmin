@@ -5,7 +5,8 @@
   </div>
 </template>
 
-<script setup lang="ts" name="layoutNavBars">
+<script setup lang="ts">
+defineOptions({ name: 'layoutNavBars' })
 import {computed, defineAsyncComponent} from 'vue';
 import {storeToRefs} from "/@/stores";
 import {useThemeConfig} from '/@/stores/themeConfig';

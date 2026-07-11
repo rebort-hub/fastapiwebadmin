@@ -10,7 +10,8 @@
   </el-container>
 </template>
 
-<script setup lang="ts" name="layoutDefaults">
+<script setup lang="ts">
+defineOptions({ name: 'layoutDefaults' })
 import {nextTick, onMounted, ref, watch} from 'vue';
 import {useRoute} from 'vue-router';
 import {storeToRefs} from "/@/stores";

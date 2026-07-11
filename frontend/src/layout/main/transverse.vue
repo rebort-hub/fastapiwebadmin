@@ -5,7 +5,8 @@
   </el-container>
 </template>
 
-<script setup lang="ts" name="layoutTransverse">
+<script setup lang="ts">
+defineOptions({ name: 'layoutTransverse' })
 import {defineAsyncComponent, nextTick, onMounted, ref, watch} from 'vue';
 import {useRoute} from 'vue-router';
 import {storeToRefs} from "/@/stores";

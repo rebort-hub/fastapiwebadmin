@@ -397,7 +397,7 @@ function activeClass(theme: string): string[] {
 
 
 <style scoped lang="scss">
-@import "../index";
+@use "../index" as *;
 
 .layout-drawer-content-flex {
   overflow: hidden;

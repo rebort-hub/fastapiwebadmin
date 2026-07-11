@@ -19,7 +19,8 @@
   </div>
 </template>
 
-<script setup lang="ts" name="noPower">
+<script setup lang="ts">
+defineOptions({ name: 'noPower' })
 import {Session} from '/@/utils/storage';
 import Image401 from "/@/assets/error/401.svg"
 

@@ -7,7 +7,8 @@
   </div>
 </template>
 
-<script setup lang="ts" name="layoutBreadcrumbIndex">
+<script setup lang="ts">
+defineOptions({ name: 'layoutBreadcrumbIndex' })
 import {computed, defineAsyncComponent, onMounted, onUnmounted, reactive} from 'vue';
 import {useRoute} from 'vue-router';
 import {storeToRefs} from "/@/stores";

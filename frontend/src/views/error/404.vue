@@ -20,7 +20,8 @@
   </div>
 </template>
 
-<script setup lang="ts" name="notFound">
+<script setup lang="ts">
+defineOptions({ name: 'notFound' })
 import {useRouter} from 'vue-router';
 import Image404 from "/@/assets/error/404.svg"
 

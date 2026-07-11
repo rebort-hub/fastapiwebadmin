@@ -1,7 +1,8 @@
 <template>
   <div class="monaco-editor" ref="monacoEditorRef"></div>
 </template>
-<script lang="ts" setup name="monacoEditor">
+<script lang="ts" setup>
+defineOptions({ name: 'monacoEditor' })
 import * as monaco from 'monaco-editor'
 import {reactive, ref, watch, onMounted, toRaw} from 'vue'
 import {language as pythonLanguage} from 'monaco-editor/esm/vs/basic-languages/python/python.js';

@@ -11,8 +11,7 @@ except ImportError:
 from sqlalchemy import Boolean, DateTime, func, select, update, delete, insert, Select, \
     Executable, Result, String, ClauseList, BigInteger, literal_column, Row
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.ext.declarative import as_declarative
-from sqlalchemy.orm import mapped_column, noload
+from sqlalchemy.orm import DeclarativeBase, mapped_column, noload
 
 from app.utils.serialize import default_serialize
 from app.db.sqlalchemy import async_transaction
@@ -21,32 +20,12 @@ from app.utils.context import AppTraceId, SQLAlchemySession, FastApiRequest
 T = typing.TypeVar("T", Select, "Query[Any]")
 
 
-@as_declarative()
-class Base:
-    """ 基本表 """
-    # db.scalar(sql) 返回的是标量(原始数据) <models.department.Department object at 0x000002F2C2D22110>
-    # db.execute(sql) 返回的是元组 (<models.department.Department object at 0x000002F2C2D22110>)
-    # db.scalars(sql).all()  [<models...>, <models...>, <models...>]
-    # db.execute(sql).fetchall()  [(<models...>,), (<models...>,), (<models...>,)]
+class DeclarativeRoot(DeclarativeBase):
+    """ORM 元数据根（业务方法与 metadata）"""
+
     __abstract__ = True
-
-    __name__: str  # 表名
-    __table_args__ = {"mysql_charset": "utf8"}  # 设置表的字符集
-
-    __mapper_args__ = {"eager_defaults": True}  # 防止 insert 插入后不刷新
-
-    # @declared_attr
-    # def __tablename__(cls) -> str:
-    #     """将类名小写并转化为表名 __tablename__"""
-    #     return cls.__name__.lower()
-
-    id = mapped_column(BigInteger(), nullable=False, primary_key=True, autoincrement=True, comment='主键')
-    creation_date = mapped_column(DateTime(), default=func.now(), comment='创建时间')
-    created_by = mapped_column(BigInteger, nullable=True, comment='创建人ID')
-    updation_date = mapped_column(DateTime(), default=func.now(), onupdate=func.now(), comment='更新时间')
-    updated_by = mapped_column(BigInteger, nullable=True, comment='更新人ID')
-    enabled_flag = mapped_column(Boolean(), default=1, nullable=False, comment='是否删除, 0 删除 1 非删除')
-    trace_id = mapped_column(String(255), nullable=True, comment="trace_id")
+    __table_args__ = {"mysql_charset": "utf8"}
+    __mapper_args__ = {"eager_defaults": True}
 
     @classmethod
     async def get(cls, id: typing.Union[int, str], to_dict: object = False) -> typing.Union["Base", typing.Dict, None]:
@@ -335,6 +314,24 @@ class Base:
         :param items: 数据返回数据 [Row(...)]
         :return:
         """
-        # if isinstance(items, typing.Iterable) and not isinstance(items, Row):
-        #     return [default_serialize(item) for item in items]
         return default_serialize(items)
+
+
+class Base(DeclarativeRoot):
+    """业务表基类"""
+
+    __abstract__ = True
+
+    id = mapped_column(BigInteger(), nullable=False, primary_key=True, autoincrement=True, comment='主键')
+    creation_date = mapped_column(DateTime(), default=func.now(), comment='创建时间')
+    created_by = mapped_column(BigInteger, nullable=True, comment='创建人ID')
+    updation_date = mapped_column(DateTime(), default=func.now(), onupdate=func.now(), comment='更新时间')
+    updated_by = mapped_column(BigInteger, nullable=True, comment='更新人ID')
+    enabled_flag = mapped_column(Boolean(), default=1, nullable=False, comment='是否删除, 0 删除 1 非删除')
+    trace_id = mapped_column(String(255), nullable=True, comment="trace_id")
+
+
+class AssociationBase(DeclarativeRoot):
+    """纯关联表基类（仅复合主键，无 id / 审计字段）"""
+
+    __abstract__ = True

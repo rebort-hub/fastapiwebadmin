@@ -52,7 +52,8 @@
   </div>
 </template>
 
-<script setup lang="ts" name="iconSelector">
+<script setup lang="ts">
+defineOptions({ name: 'iconSelector' })
 import {defineAsyncComponent, ref, reactive, onMounted, nextTick, computed, watch} from 'vue';
 import type {TabsPaneContext} from 'element-plus';
 import initIconfont from '/@/utils/getStyleSheets';

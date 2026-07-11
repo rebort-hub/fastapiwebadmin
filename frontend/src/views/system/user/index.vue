@@ -23,7 +23,8 @@
   </div>
 </template>
 
-<script lang="ts" setup name="SystemUser">
+<script lang="ts" setup>
+defineOptions({ name: 'SystemUser' })
 import {h, onMounted, reactive, ref} from 'vue';
 import {ElButton, ElMessage, ElMessageBox, ElTag} from 'element-plus';
 import SaveOrUpdateUser from '/@/views/system/user/EditUser.vue';

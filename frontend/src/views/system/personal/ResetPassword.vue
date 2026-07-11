@@ -42,7 +42,8 @@
 
 </template>
 
-<script setup lang="ts" name="ResetPassword">
+<script setup lang="ts">
+defineOptions({ name: 'ResetPassword' })
 import {reactive, ref} from 'vue';
 import {useUserApi} from "/@/api/useSystemApi/user";
 import {ElMessage} from "element-plus";

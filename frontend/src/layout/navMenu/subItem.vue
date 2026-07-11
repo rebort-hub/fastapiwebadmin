@@ -24,7 +24,8 @@
   </template>
 </template>
 
-<script setup lang="ts" name="navMenuSubItem">
+<script setup lang="ts">
+defineOptions({ name: 'navMenuSubItem' })
 import {computed} from 'vue';
 import other from '/@/utils/other';
 import {RouteRecordRaw} from "vue-router";

@@ -26,7 +26,8 @@
   </div>
 </template>
 
-<script setup lang="ts" name="loginIndex">
+<script setup lang="ts">
+defineOptions({ name: 'loginIndex' })
 import { computed, defineAsyncComponent, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { storeToRefs } from 'pinia';

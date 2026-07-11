@@ -2,7 +2,8 @@
   <component :is="layouts[themeConfig.layout]"/>
 </template>
 
-<script setup lang="ts" name="layout">
+<script setup lang="ts">
+defineOptions({ name: 'layout' })
 import {defineAsyncComponent, onBeforeMount, onUnmounted} from 'vue';
 import {storeToRefs} from "/@/stores";
 import {useThemeConfig} from '/@/stores/themeConfig';

@@ -15,7 +15,8 @@
   </div>
 </template>
 
-<script setup lang="ts" name="swaggerDoc">
+<script setup lang="ts">
+defineOptions({ name: 'swaggerDoc' })
 import { ref, onMounted } from 'vue';
 import { getBaseApiUrl } from '/@/utils/config';
 import { Loading } from '@element-plus/icons-vue';

@@ -6,7 +6,8 @@
   </svg>
 </template>
 
-<script setup lang="ts" name="QqIcon"></script>
+<script setup lang="ts">defineOptions({ name: 'QqIcon' })
+</script>
 
 <style scoped>
 .oauth-icon {

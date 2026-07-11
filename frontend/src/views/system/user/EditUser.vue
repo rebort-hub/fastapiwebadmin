@@ -105,7 +105,8 @@
   </div>
 </template>
 
-<script lang="ts" setup name="SaveOrUpdateUser">
+<script lang="ts" setup>
+defineOptions({ name: 'SaveOrUpdateUser' })
 import {reactive, ref, onMounted} from 'vue';
 import {useUserApi} from "/@/api/useSystemApi/user";
 import {useDepartmentApi} from "/@/api/useSystemApi/department";

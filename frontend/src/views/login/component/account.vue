@@ -87,7 +87,8 @@
   <ThirdPartyLogin :register-enabled="state.registerEnabled" @oauth="onOAuth" />
 </template>
 
-<script setup lang="ts" name="loginAccount">
+<script setup lang="ts">
+defineOptions({ name: 'loginAccount' })
 import { computed, defineAsyncComponent, onMounted, reactive, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { ElMessage } from 'element-plus';

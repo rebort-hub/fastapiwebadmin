@@ -21,7 +21,8 @@
   </div>
 </template>
 
-<script setup lang="ts" name="layoutIframeView">
+<script setup lang="ts">
+defineOptions({ name: 'layoutIframeView' })
 import {computed, nextTick, ref, watch} from 'vue';
 import {useRoute} from 'vue-router';
 

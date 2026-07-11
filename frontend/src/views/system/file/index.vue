@@ -105,7 +105,8 @@
   </div>
 </template>
 
-<script setup lang="ts" name="fileManagement">
+<script setup lang="ts">
+defineOptions({ name: 'fileManagement' })
 import { onMounted, ref } from 'vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import { Upload, Refresh, Search, Download, Delete } from '@element-plus/icons-vue';

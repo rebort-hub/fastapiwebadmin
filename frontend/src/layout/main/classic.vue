@@ -11,7 +11,8 @@
   </el-container>
 </template>
 
-<script setup lang="ts" name="layoutClassic">
+<script setup lang="ts">
+defineOptions({ name: 'layoutClassic' })
 import {defineAsyncComponent, computed, ref, watch, nextTick, onMounted} from 'vue';
 import {useRoute} from 'vue-router';
 import {storeToRefs} from "/@/stores";

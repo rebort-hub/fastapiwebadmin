@@ -196,7 +196,7 @@ font-family: -apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue'
     background-color: transparent;
     border-style: none;
     border-width: 1px;
-    border-radius: calc(var(0.5rem) - 2px);
+    border-radius: calc(0.5rem - 2px);
     width: 80%;
     padding: .5rem;
     //color: var(--next-color-white);

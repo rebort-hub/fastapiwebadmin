@@ -8,7 +8,8 @@
   </div>
 </template>
 
-<script setup lang="ts" name="layoutLogo">
+<script setup lang="ts">
+defineOptions({ name: 'layoutLogo' })
 import {computed} from 'vue';
 import {storeToRefs} from "/@/stores";
 import {useThemeConfig} from '/@/stores/themeConfig';

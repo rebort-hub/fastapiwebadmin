@@ -20,7 +20,8 @@
   </div>
 </template>
 
-<script lang="ts" setup name="SystemLoginRecord">
+<script lang="ts" setup>
+defineOptions({ name: 'SystemLoginRecord' })
 import {h, onMounted, reactive, ref} from 'vue';
 import {ElTag} from 'element-plus';
 import {useLoginRecordApi} from '/@/api/useSystemApi/loginRecord';

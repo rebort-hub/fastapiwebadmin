@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from sqlalchemy import Column, DateTime, Index, Integer, String, select
 from sqlalchemy.orm import aliased
-from app.api.v1.system.user.schema import UserLoginRecordQuery
+from app.api.v1.system.login_record.schema import LoginRecordQuery
 from app.models.base import Base
 
 
@@ -24,7 +24,7 @@ class UserLoginRecord(Base):
     source_type = Column(String(255), comment="来源")
 
     @classmethod
-    async def get_list(cls, params: UserLoginRecordQuery):
+    async def get_list(cls, params: LoginRecordQuery):
         from app.api.v1.system.user.model import User
 
         q = [cls.enabled_flag == 1]
@@ -36,6 +36,14 @@ class UserLoginRecord(Base):
             q.append(cls.user_name.like("%{}%".format(params.user_name)))
         if params.login_ip:
             q.append(cls.login_ip.like("%{}%".format(params.login_ip)))
+
+        from app.core.data_scope import DataScopeFilter
+
+        scope = await DataScopeFilter.for_request()
+        scope_clause = scope.log_user_clause(cls.user_id)
+        if scope_clause is not None:
+            q.append(scope_clause)
+
         u = aliased(User)
         stmt = select(*cls.get_table_columns()).where(*q).outerjoin(u, u.id == cls.created_by).order_by(cls.id.desc())
         return await cls.pagination(stmt)

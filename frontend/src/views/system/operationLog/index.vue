@@ -20,7 +20,8 @@
   </div>
 </template>
 
-<script lang="ts" setup name="SystemOperationLog">
+<script lang="ts" setup>
+defineOptions({ name: 'SystemOperationLog' })
 import { h, onMounted, reactive, ref } from 'vue';
 import { ElTag } from 'element-plus';
 import { useOperationLogApi } from '/@/api/useSystemApi/operationLog';

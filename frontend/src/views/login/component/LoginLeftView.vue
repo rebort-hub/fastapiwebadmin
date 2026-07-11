@@ -15,7 +15,8 @@
   </div>
 </template>
 
-<script setup lang="ts" name="LoginLeftView">
+<script setup lang="ts">
+defineOptions({ name: 'LoginLeftView' })
 import { logos } from '/@/config/assets';
 </script>
 

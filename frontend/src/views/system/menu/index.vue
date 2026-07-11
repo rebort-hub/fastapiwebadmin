@@ -29,7 +29,8 @@
   </div>
 </template>
 
-<script lang="ts" setup name="SystemMenu">
+<script lang="ts" setup>
+defineOptions({ name: 'SystemMenu' })
 import {h, onMounted, reactive, ref} from 'vue';
 import {useMenuApi} from '/@/api/useSystemApi/menu';
 import {RouteRecordRaw} from 'vue-router';

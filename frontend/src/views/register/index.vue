@@ -121,7 +121,8 @@
   </div>
 </template>
 
-<script setup lang="ts" name="registerIndex">
+<script setup lang="ts">
+defineOptions({ name: 'registerIndex' })
 import { defineAsyncComponent, onMounted, reactive, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import type { FormInstance, FormRules } from 'element-plus';

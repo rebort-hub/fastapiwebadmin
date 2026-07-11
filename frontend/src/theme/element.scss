@@ -1,4 +1,5 @@
-@import 'mixins/index.scss';
+@use './app.scss' as *;
+@use 'mixins/index.scss' as *;
 
 /* Button 按钮
 ------------------------------- */

@@ -13,11 +13,17 @@ class DepartmentService:
     @staticmethod
     async def list():
         """获取部门列表（树形结构）"""
+        from app.core.data_scope import DataScopeFilter
+
         all_depts = await Department.get_list()
-        # 如果没有数据，返回空列表
         if not all_depts:
             return []
-        # 构建树形结构
+
+        scope = await DataScopeFilter.for_request()
+        visible_ids = scope.dept_visible_ids()
+        if visible_ids is not None:
+            all_depts = [dept for dept in all_depts if dept.get("id") in visible_ids]
+
         return DepartmentService.build_tree(all_depts, 0)
 
     @staticmethod

@@ -139,7 +139,8 @@
   </div>
 </template>
 
-<script setup lang="ts" name="systemMonitor">
+<script setup lang="ts">
+defineOptions({ name: 'systemMonitor' })
 import { ref, reactive, onMounted } from 'vue';
 import { ElMessage } from 'element-plus';
 import {

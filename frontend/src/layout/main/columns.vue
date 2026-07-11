@@ -11,7 +11,8 @@
   </el-container>
 </template>
 
-<script setup lang="ts" name="layoutColumns">
+<script setup lang="ts">
+defineOptions({ name: 'layoutColumns' })
 import {defineAsyncComponent, watch, onMounted, nextTick, ref} from 'vue';
 import {useRoute} from 'vue-router';
 import {storeToRefs} from "/@/stores";

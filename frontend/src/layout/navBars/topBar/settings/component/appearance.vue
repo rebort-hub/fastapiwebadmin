@@ -170,7 +170,7 @@ const isIsDark = computed(() => {
 </template>
 
 <style scoped lang="scss">
-@import "../index";
+@use "../index" as *;
 
 .layout-setting-appearance {
   //outline: auto !important;

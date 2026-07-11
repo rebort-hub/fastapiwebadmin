@@ -197,7 +197,8 @@
   </div>
 </template>
 
-<script setup lang="ts" name="personal">
+<script setup lang="ts">
+defineOptions({ name: 'personal' })
 import {computed, defineAsyncComponent, nextTick, onMounted, reactive, ref} from 'vue';
 import {formatAxis} from '/@/utils/formatTime';
 import {useUserStore} from "/@/stores/user";
@@ -302,7 +303,7 @@ onMounted(() => {
 </script>
 
 <style scoped lang="scss">
-@import '../../../theme/mixins/index.scss';
+@use '../../../theme/mixins/index.scss' as *;
 
 .personal {
   .personal-user {

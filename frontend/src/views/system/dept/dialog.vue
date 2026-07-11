@@ -49,7 +49,8 @@
   </div>
 </template>
 
-<script setup lang="ts" name="systemDeptDialog">
+<script setup lang="ts">
+defineOptions({ name: 'systemDeptDialog' })
 import { reactive, ref } from 'vue';
 import { ElMessage } from 'element-plus';
 import { useDepartmentApi } from '/@/api/useSystemApi/department';
