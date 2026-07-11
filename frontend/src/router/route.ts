@@ -207,4 +207,20 @@ export const staticRoutes: Array<RouteRecordRaw> = [
 			title: '登录',
 		},
 	},
+	{
+		path: '/register',
+		name: 'register',
+		component: () => import('/src/views/register/index.vue'),
+		meta: {
+			title: '注册',
+		},
+	},
+	{
+		path: '/forget-password',
+		name: 'forgetPassword',
+		component: () => import('/src/views/forget-password/index.vue'),
+		meta: {
+			title: '忘记密码',
+		},
+	},
 ];

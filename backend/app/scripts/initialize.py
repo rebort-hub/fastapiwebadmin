@@ -33,10 +33,44 @@ class InitializeData:
                 # 种子 SQL 可能不含后续新增模块，补建 ORM 中缺失的表
                 if settings.AUTO_CREATE_TABLES:
                     await create_tables()
+                    await self._patch_schema()
                 return
 
         if settings.AUTO_CREATE_TABLES:
             await create_tables()
+            await self._patch_schema()
+
+    async def _patch_schema(self) -> None:
+        """为已有库补充新增字段/表（非破坏性）。"""
+        if not settings.SQL_DB_ENABLE:
+            return
+        alters = [
+            "ALTER TABLE `file_info` ADD COLUMN `storage_type` varchar(32) NULL DEFAULT 'local' COMMENT '存储类型'",
+            "ALTER TABLE `file_info` ADD COLUMN `file_url` varchar(1000) NULL COMMENT '访问URL'",
+            "ALTER TABLE `file_info` ADD COLUMN `file_hash` varchar(64) NULL COMMENT '文件MD5'",
+            "ALTER TABLE `file_info` ADD COLUMN `uploader_id` int NULL COMMENT '上传者ID'",
+            "ALTER TABLE `file_info` ADD COLUMN `uploader_name` varchar(64) NULL COMMENT '上传者'",
+        ]
+        try:
+            conn = pymysql.connect(
+                host=settings.DATABASE_HOST,
+                port=settings.DATABASE_PORT,
+                user=settings.DATABASE_USER,
+                password=settings.DATABASE_PASSWORD,
+                database=settings.DATABASE_NAME,
+                charset="utf8mb4",
+            )
+            cursor = conn.cursor()
+            for sql in alters:
+                try:
+                    cursor.execute(sql)
+                except Exception:
+                    pass
+            conn.commit()
+            cursor.close()
+            conn.close()
+        except Exception as exc:
+            log.warning(f"schema patch 跳过: {exc}")
 
     def _execute_full_sql_file(self, sql_file: Path) -> tuple[int, int]:
         """执行完整 SQL 文件（含 DDL + INSERT），与 Navicat 导出格式兼容。"""

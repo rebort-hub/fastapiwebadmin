@@ -39,6 +39,8 @@ class UserQuery(BaseSchema):
 class UserLogin(BaseModel):
     username: typing.Optional[str] = Field(..., description='用户名')
     password: typing.Optional[str] = Field(..., description='密码')
+    captcha: typing.Optional[str] = Field(None, description='验证码')
+    captcha_key: typing.Optional[str] = Field(None, description='验证码 key')
 
 
 class UserResetPwd(BaseModel):

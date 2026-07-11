@@ -61,8 +61,8 @@
           </el-col>
 
           <el-col :xs="24" :sm="12" :md="12" :lg="12" :xl="12" class="mb20">
-            <el-form-item label="邮箱" prop="email">
-              <el-input v-model="state.form.email" placeholder="请输入" clearable></el-input>
+            <el-form-item label="邮箱" prop="email" required>
+              <el-input v-model="state.form.email" placeholder="请输入邮箱" clearable></el-input>
             </el-form-item>
           </el-col>
 
@@ -128,7 +128,7 @@ const createForm = () => {
     password: '', // 密码
     roles: '', // 关联角色
     email: '', // 邮箱
-    status: 1, // 用户状态 1启用 2 禁用
+    status: 1, // 用户状态 1 启用 0 禁用
     user_type: 20, // 用户类型
     remarks: '', // 描述
     updated_by: null, // 更新人
@@ -146,6 +146,10 @@ const state = reactive({
     username: [{required: true, message: '请输入用户名称', trigger: 'blur'},],
     roles: [{required: true, message: '请选择角色', trigger: 'blur'},],
     nickname: [{required: true, message: '请输入用户昵称', trigger: 'blur'},],
+    email: [
+      {required: true, message: '请输入邮箱', trigger: 'blur'},
+      {type: 'email', message: '邮箱格式不正确', trigger: 'blur'},
+    ],
   }
 });
 

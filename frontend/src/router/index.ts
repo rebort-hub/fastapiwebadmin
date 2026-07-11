@@ -102,7 +102,8 @@ const {isRequestRoutes} = themeConfig.value;
 	NProgress.configure({showSpinner: false});
 	if (to.meta.title) NProgress.start();
 	const token = Session.get('token');
-	if (to.path === '/login' && !token) {
+	const publicPaths = ['/login', '/register', '/forget-password'];
+	if (publicPaths.includes(to.path) && !token) {
 		next();
 		NProgress.done();
 	} else {
@@ -110,7 +111,7 @@ const {isRequestRoutes} = themeConfig.value;
 			next(`/login?redirect=${to.path}&params=${JSON.stringify(to.query ? to.query : to.params)}`);
 			Session.clear();
 			NProgress.done();
-		} else if (token && to.path === '/login') {
+		} else if (token && publicPaths.includes(to.path)) {
 			next('/home');
 			NProgress.done();
 		} else {

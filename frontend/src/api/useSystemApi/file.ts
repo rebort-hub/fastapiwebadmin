@@ -1,33 +1,30 @@
 import request from '/@/utils/request';
 
-/**
- * 用户接口
- * @method getUserList 获取用户列表
- * @method allMenu 获取菜单接口，平铺
- * @method saveOrUpdateMenu 更新保存菜单
- */
 export function useFileApi() {
   return {
     upload: (data: object) => {
       return request({
         url: '/file/upload',
         method: 'POST',
-        headers: {"Content-Type": "multipart/form-data"},
+        headers: { 'Content-Type': 'multipart/form-data' },
         data,
       });
     },
-    download: (path: string) => {
-      return request({
-        url: '/file/download/' + path,
-        method: 'GET',
-      });
+    getList: (data: object) => {
+      return request({ url: '/file/list', method: 'POST', data });
     },
-    deleted: (data: object) => {
-      return request({
-        url: '/file/deleted',
-        method: 'POST',
-        data,
-      });
-    },
+    getStatistics: () => request({ url: '/file/statistics', method: 'GET' }),
+    getStorageConfig: () => request({ url: '/file/storage-config', method: 'GET' }),
+    deleted: (data: object) => request({ url: '/file/deleted', method: 'POST', data }),
+    deleteList: (data: object) => request({ url: '/file/deleteList', method: 'POST', data }),
+    download: (path: string) => request({ url: '/file/download/' + path, method: 'GET' }),
   };
 }
+
+export const STORAGE_TYPE_LABELS: Record<string, string> = {
+  local: '本地存储',
+  aliyun_oss: '阿里云 OSS',
+  tencent_cos: '腾讯云 COS',
+  qiniu: '七牛云',
+  minio: 'MinIO',
+};

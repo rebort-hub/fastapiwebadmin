@@ -63,7 +63,9 @@ const state = reactive<StateRow>({
   columns: [
     {key: 'code', label: '账号', width: '150', align: 'center', show: true},
     {key: 'user_name', label: '用户名称', width: '150', align: 'center', show: true},
-    {key: 'login_ip', label: '登录IP', width: '180', align: 'center', show: true},
+    {key: 'login_ip', label: '登录IP', width: '140', align: 'center', show: true},
+    {key: 'address', label: '登录地址', width: '180', align: 'center', show: true},
+    {key: 'source_type', label: '浏览器/系统', width: '160', align: 'center', show: true},
     {key: 'login_type', label: '登录方式', width: '120', align: 'center', show: true},
     {
       key: 'ret_code', label: '登录状态', width: '120', align: 'center', show: true,

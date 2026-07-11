@@ -1,153 +1,176 @@
-import os
+# -*- coding: utf-8 -*-
 import typing
-import uuid
-from fastapi import UploadFile
-from fastapi.responses import FileResponse, HTMLResponse
-from loguru import logger
-from app.config.setting import settings as config
-from app.api.v1.common.file.model import FileInfo
-from app.api.v1.common.file.schema import FileIn, FileId, FileQuery
-import aiofiles
 
+from fastapi import UploadFile
+from fastapi.responses import FileResponse, HTMLResponse, RedirectResponse
+from loguru import logger
+
+from app.api.v1.common.file.model import FileInfo
+from app.api.v1.common.file.schema import FileId, FileIdList, FileIn, FileQuery
+from app.config.setting import settings
 from app.utils.common import get_str_uuid
+from app.utils.current_user import current_user
+from app.utils.storage import StorageFactory, StorageType
+
+
+def _get_file_type(filename: str) -> str:
+    ext = filename.rsplit(".", 1)[-1].lower() if "." in filename else ""
+    image_ext = {"jpg", "jpeg", "png", "gif", "bmp", "webp", "svg", "ico"}
+    doc_ext = {"doc", "docx", "xls", "xlsx", "ppt", "pptx", "pdf", "txt", "md", "csv"}
+    video_ext = {"mp4", "avi", "mov", "wmv", "flv", "mkv"}
+    audio_ext = {"mp3", "wav", "flac", "aac", "ogg"}
+    archive_ext = {"zip", "rar", "7z", "tar", "gz"}
+    if ext in image_ext:
+        return "image"
+    if ext in doc_ext:
+        return "document"
+    if ext in video_ext:
+        return "video"
+    if ext in audio_ext:
+        return "audio"
+    if ext in archive_ext:
+        return "archive"
+    return "other"
 
 
 class FileService:
-    """文件"""
+    @staticmethod
+    def _validate_upload(file: UploadFile, content: bytes) -> None:
+        max_bytes = settings.UPLOAD_MAX_SIZE_MB * 1024 * 1024
+        if len(content) > max_bytes:
+            raise ValueError(f"文件大小超过限制（最大 {settings.UPLOAD_MAX_SIZE_MB}MB）")
+        ext = file.filename.rsplit(".", 1)[-1].lower() if file.filename and "." in file.filename else ""
+        allowed = settings.upload_allowed_ext_list
+        if allowed and ext and ext not in allowed:
+            raise ValueError(f"不支持的文件类型: {ext}")
 
     @staticmethod
-    async def upload(file: UploadFile) -> typing.Dict[str, str]:
-        """文件上传"""
+    async def upload(file: UploadFile, folder: str = "") -> typing.Dict[str, typing.Any]:
         if not file:
-            raise FileNotFoundError('请选择上传文件！')
-        file_dir = config.TEST_FILES_DIR
-        if not os.path.exists(file_dir):
-            os.makedirs(file_dir)
-        extend_file = file.filename.split(".")
-        extend_name = extend_file[-1] if len(extend_file) > 1 else None
+            raise FileNotFoundError("请选择上传文件！")
+        content = await file.read()
+        await file.seek(0)
+        FileService._validate_upload(file, content)
 
-        file_name = f'{str(uuid.uuid4()).replace("-", "").upper()}'
-        if extend_name:
-            file_name = f"{file_name}.{extend_name}"
-        abs_file_path = os.path.join(file_dir, file_name)
-        contents = await file.read()
-        file_size = str(round(len(contents) / 1024, 2))  # 转换为字符串
-        async with aiofiles.open(abs_file_path, "wb") as f:
-            await f.write(contents)
-        file_params = FileIn(id=get_str_uuid(),
-                             name=file_name,
-                             file_path=abs_file_path,
-                             extend_name=extend_name,
-                             original_name=file.filename,
-                             file_size=file_size,
-                             content_type=file.content_type)
+        storage_type = settings.UPLOAD_STORAGE_TYPE or StorageType.LOCAL
+        storage = StorageFactory.create(storage_type)
+        result = await storage.upload(file, folder)
 
-        file_info = await FileInfo.create(file_params.dict(), to_dict=True)
-        logger.info(f'文件保存--> {abs_file_path}')
-        file_id = file_info['id']
-        data = {
-            'id': file_id,
-            'url': f'/file/download/{file_id}',
-            'name': file.filename,
-            'original_name': file.filename,
+        ext = file.filename.rsplit(".", 1)[-1].lower() if file.filename and "." in file.filename else ""
+        uploader_id = None
+        uploader_name = None
+        try:
+            user = await current_user()
+            uploader_id = user.get("id")
+            uploader_name = user.get("username")
+        except Exception:
+            pass
+
+        file_id = get_str_uuid()
+        file_params = FileIn(
+            id=file_id,
+            name=result["key"].split("/")[-1],
+            file_path=result["key"],
+            extend_name=ext,
+            original_name=file.filename,
+            content_type=file.content_type,
+            file_size=str(round(result["size"] / 1024, 2)),
+            storage_type=storage_type,
+            file_url=result["url"],
+            file_hash=result.get("hash"),
+            uploader_id=uploader_id,
+            uploader_name=uploader_name,
+        )
+        await FileInfo.create(file_params.model_dump(), to_dict=True)
+        return {
+            "id": file_id,
+            "url": result["url"],
+            "name": file.filename,
+            "original_name": file.filename,
+            "storage_type": storage_type,
+            "file_type": _get_file_type(file.filename or ""),
+            "size": result["size"],
         }
-        return data
 
     @staticmethod
     async def get_file_list(params: FileQuery) -> typing.Dict:
-        """获取文件列表"""
-        from sqlalchemy import select
-        from app.api.v1.common.file.model import FileInfo
-        from app.utils.context import FastApiRequest
-        
-        # 构建查询
-        q = [FileInfo.enabled_flag == 1]
-        if params.name:
-            q.append(FileInfo.original_name.like(f'%{params.name}%'))
-        
-        stmt = select(FileInfo).where(*q).order_by(FileInfo.creation_date.desc())
-        
-        # 直接传入分页参数，避免从 request 中获取
-        from app.models.base import Base
-        from app.db.sqlalchemy import async_session
-        from math import ceil
-        
-        async with async_session() as session:
-            # 获取总数
-            count_stmt = Base.count_query(stmt)
-            result = await session.execute(count_stmt)
-            total = result.scalar()
-            
-            # 获取分页数据
-            page = params.page
-            page_size = min(params.pageSize, 1000)
-            paginated_stmt = Base.paginate_query(stmt, page=page, page_size=page_size)
-            result = await session.execute(paginated_stmt)
-            rows = result.scalars().all()
-            rows = Base.unwrap_scalars(rows)
-            
-            total_page = int(ceil(float(total) / page_size))
-            
-            return {
-                'rowTotal': total,
-                'pageSize': page_size,
-                'page': page,
-                'pageTotal': total_page,
-                'rows': rows,
-            }
+        return await FileInfo.get_list(params)
 
     @staticmethod
-    async def download(file_id: str) -> typing.Union[FileResponse, HTMLResponse]:
-        file_info = await FileInfo.get(file_id)
-        if not file_info:
-            logger.error(f'{file_id} 文件不存在！')
-            return HTMLResponse(content="文件不存在")
-        file_dir = os.path.join(config.TEST_FILES_DIR, file_info.name)
-        if not os.path.isfile(file_dir):
-            logger.error(f'{file_info.name}文件不存在！')
-            return HTMLResponse(content="文件不存在")
+    async def get_statistics() -> dict:
+        return await FileInfo.statistics()
 
-        return FileResponse(path=file_dir, filename=file_info.original_name)
+    @staticmethod
+    async def get_storage_config() -> dict:
+        return StorageFactory.get_storage_config()
+
+    @staticmethod
+    async def download(file_id: str):
+        file_info = await FileInfo.get(file_id, to_dict=True)
+        if not file_info:
+            return HTMLResponse(content="文件不存在")
+        storage_type = file_info.get("storage_type") or StorageType.LOCAL
+        storage_key = file_info.get("file_path")
+        if storage_type != StorageType.LOCAL and file_info.get("file_url"):
+            return RedirectResponse(file_info["file_url"])
+        from app.utils.storage import LocalStorage
+
+        storage = StorageFactory.create(storage_type)
+        if isinstance(storage, LocalStorage) and storage_key:
+            local_path = storage.get_file_path(storage_key)
+            if local_path.is_file():
+                return FileResponse(path=str(local_path), filename=file_info.get("original_name"))
+            import os
+
+            legacy_path = os.path.join(settings.upload_local_dir, file_info.get("name") or "")
+            if os.path.isfile(legacy_path):
+                return FileResponse(path=legacy_path, filename=file_info.get("original_name"))
+        if file_info.get("file_url"):
+            return RedirectResponse(file_info["file_url"])
+        return HTMLResponse(content="文件不存在")
 
     @staticmethod
     async def deleted(params: FileId) -> int:
-        """删除文件"""
-        # 先获取文件信息
-        file_info = await FileInfo.get(params.id)
+        file_info = await FileInfo.get(params.id, to_dict=True)
         if not file_info:
-            logger.error(f'文件 {params.id} 不存在！')
-            raise FileNotFoundError('文件不存在！')
-        
-        # 删除物理文件
-        file_path = os.path.join(config.TEST_FILES_DIR, file_info.name)
-        if os.path.isfile(file_path):
+            raise FileNotFoundError("文件不存在！")
+        storage = StorageFactory.create(file_info.get("storage_type") or StorageType.LOCAL)
+        storage_key = file_info.get("file_path")
+        if storage_key:
+            await storage.delete(storage_key)
+        return await FileInfo.delete(params.id)
+
+    @staticmethod
+    async def batch_deleted(params: FileIdList) -> int:
+        count = 0
+        for file_id in params.ids:
             try:
-                os.remove(file_path)
-                logger.info(f'物理文件已删除: {file_path}')
-            except Exception as e:
-                logger.error(f'删除物理文件失败: {file_path}, 错误: {e}')
-        else:
-            logger.warning(f'物理文件不存在: {file_path}')
-        
-        # 删除数据库记录
-        result = await FileInfo.delete(params.id)
-        logger.info(f'数据库记录已删除: {params.id}')
-        return result
+                await FileService.deleted(FileId(id=file_id))
+                count += 1
+            except Exception as exc:
+                logger.warning(f"删除文件 {file_id} 失败: {exc}")
+        return count
 
     @staticmethod
     async def get_file_by_id(params: FileId):
-        file_info = await FileInfo.get(params.id)
+        file_info = await FileInfo.get(params.id, to_dict=True)
         if not file_info:
-            logger.error('文件不存在！')
-            raise FileNotFoundError('文件不存在！')
-        file_dir = os.path.join(config.TEST_FILES_DIR, file_info.file_name)
-        if not os.path.isfile(file_dir):
-            logger.error('文件不存在！')
-            raise FileNotFoundError('文件不存在！')
-
-        data = {
-            'id': file_info.id,
-            'url': f'/file/download/{file_info.file_name}',
-            'name': file_info.original_name,
+            raise FileNotFoundError("文件不存在！")
+        return {
+            "id": file_info["id"],
+            "url": file_info.get("file_url") or f"/api/file/download/{file_info['id']}",
+            "name": file_info.get("original_name"),
+            "storage_type": file_info.get("storage_type"),
         }
-        return data
+
+    @staticmethod
+    async def serve_local_file(file_path: str):
+        from app.utils.storage import LocalStorage
+
+        storage = StorageFactory.create(StorageType.LOCAL)
+        if not isinstance(storage, LocalStorage):
+            return HTMLResponse(content="文件不存在", status_code=404)
+        local_file = storage.get_file_path(file_path)
+        if not local_file.is_file():
+            return HTMLResponse(content="文件不存在", status_code=404)
+        return FileResponse(path=str(local_file))

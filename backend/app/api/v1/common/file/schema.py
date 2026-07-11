@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-# @author: rebort
 import uuid
 import typing
 
@@ -7,25 +6,30 @@ from pydantic import BaseModel, Field
 
 
 class FileIn(BaseModel):
-    id: str = Field(default=str(uuid.uuid4()).replace("-", ""), description="文件id")
-    name: str = Field(None, description="存储的文件名")
-    file_path: str = Field(None, description="文件路径")
-    extend_name: str = Field(None, description="文件后缀名")
-    original_name: str = Field(None, description="文件原名称")
-    content_type: str = Field(None, description="文件类型")
-    file_size: str = Field(None, description="文件大小")
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()).replace("-", ""))
+    name: str | None = None
+    file_path: str | None = None
+    extend_name: str | None = None
+    original_name: str | None = None
+    content_type: str | None = None
+    file_size: str | None = None
+    storage_type: str | None = "local"
+    file_url: str | None = None
+    file_hash: str | None = None
+    uploader_id: int | None = None
+    uploader_name: str | None = None
 
 
 class FileQuery(BaseModel):
-    """文件查询参数"""
     page: int = Field(1, description="页码")
     pageSize: int = Field(20, description="每页数量")
     name: typing.Optional[str] = Field(None, description="文件名搜索")
-
-
-class FileDown(BaseModel):
-    path: str = Field(..., description="文件路径")
+    storage_type: typing.Optional[str] = Field(None, description="存储类型")
 
 
 class FileId(BaseModel):
     id: typing.Union[int, str] = Field(..., description="文件id")
+
+
+class FileIdList(BaseModel):
+    ids: list[str] = Field(..., description="文件id列表")

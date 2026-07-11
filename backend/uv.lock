@@ -12,6 +12,15 @@ wheels = [
 ]
 
 [[package]]
+name = "aiosmtplib"
+version = "4.0.1"
+source = { registry = "https://mirrors.aliyun.com/pypi/simple" }
+sdist = { url = "https://mirrors.aliyun.com/pypi/packages/cf/d1/0ee117510ae0513f945ff3ee42edee20a3f236b2020c954f12ccd0931f95/aiosmtplib-4.0.1.tar.gz", hash = "sha256:10d426afe923edeb28ce0f007da0ee4060e9e12dd3890c162b22e1958da35761" }
+wheels = [
+    { url = "https://mirrors.aliyun.com/pypi/packages/81/f9/44fb8e33f2624fbcd40adee97143f6324123d80818f939f90a80ef5bade2/aiosmtplib-4.0.1-py3-none-any.whl", hash = "sha256:5f56ad99fa0653f32e80636f917dc0251489917d6a363a9b58a586e575d21f28" },
+]
+
+[[package]]
 name = "alembic"
 version = "1.13.1"
 source = { registry = "https://mirrors.aliyun.com/pypi/simple" }
@@ -577,6 +586,7 @@ version = "2.0.0"
 source = { editable = "." }
 dependencies = [
     { name = "aiofiles" },
+    { name = "aiosmtplib" },
     { name = "alembic" },
     { name = "anyio" },
     { name = "async-timeout" },
@@ -596,10 +606,12 @@ dependencies = [
     { name = "h11" },
     { name = "httpx" },
     { name = "idna" },
+    { name = "jinja2" },
     { name = "loguru" },
     { name = "markupsafe" },
     { name = "orjson" },
     { name = "passlib", extra = ["bcrypt"] },
+    { name = "py-ip2region" },
     { name = "pycryptodomex" },
     { name = "pydantic" },
     { name = "pydantic-settings" },
@@ -613,6 +625,7 @@ dependencies = [
     { name = "sqlalchemy" },
     { name = "typer" },
     { name = "urllib3" },
+    { name = "user-agents" },
     { name = "uvicorn" },
 ]
 
@@ -626,6 +639,7 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "aiofiles", specifier = "==23.1.0" },
+    { name = "aiosmtplib", specifier = "==4.0.1" },
     { name = "alembic", specifier = "==1.13.1" },
     { name = "anyio", specifier = "==3.6.2" },
     { name = "async-timeout", specifier = ">=4.0.3" },
@@ -645,10 +659,12 @@ requires-dist = [
     { name = "h11", specifier = "==0.14.0" },
     { name = "httpx", specifier = "==0.25.2" },
     { name = "idna", specifier = "==3.4" },
+    { name = "jinja2", specifier = "==3.1.6" },
     { name = "loguru", specifier = "==0.6.0" },
     { name = "markupsafe", specifier = "==2.1.2" },
     { name = "orjson", specifier = "==3.8.6" },
     { name = "passlib", extras = ["bcrypt"], specifier = "==1.7.4" },
+    { name = "py-ip2region", specifier = "==3.0.2" },
     { name = "pycryptodomex" },
     { name = "pydantic", specifier = "==2.7.3" },
     { name = "pydantic-settings", specifier = "==2.0.3" },
@@ -662,6 +678,7 @@ requires-dist = [
     { name = "sqlalchemy", specifier = "==2.0.3" },
     { name = "typer", specifier = "==0.12.3" },
     { name = "urllib3", specifier = "==1.26.14" },
+    { name = "user-agents", specifier = "==2.2.0" },
     { name = "uvicorn", specifier = "==0.20.0" },
 ]
 
@@ -1008,6 +1025,15 @@ dependencies = [
 sdist = { url = "https://mirrors.aliyun.com/pypi/packages/a1/96/06e01a7b38dce6fe1db213e061a4602dd6032a8a97ef6c1a862537732421/prompt_toolkit-3.0.52.tar.gz", hash = "sha256:28cde192929c8e7321de85de1ddbe736f1375148b02f2e17edd840042b1be855" }
 wheels = [
     { url = "https://mirrors.aliyun.com/pypi/packages/84/03/0d3ce49e2505ae70cf43bc5bb3033955d2fc9f932163e84dc0779cc47f48/prompt_toolkit-3.0.52-py3-none-any.whl", hash = "sha256:9aac639a3bbd33284347de5ad8d68ecc044b91a762dc39b7c21095fcd6a19955" },
+]
+
+[[package]]
+name = "py-ip2region"
+version = "3.0.2"
+source = { registry = "https://mirrors.aliyun.com/pypi/simple" }
+sdist = { url = "https://mirrors.aliyun.com/pypi/packages/f8/4f/8c7bc72577c97fd1510b251a84cab8aca8cbe8374d5d3a35ff0d26b6f063/py_ip2region-3.0.2.tar.gz", hash = "sha256:58a14300f647011b1b628aa4f0dd3ee8061c5010ed21b7999626a69fe4249051" }
+wheels = [
+    { url = "https://mirrors.aliyun.com/pypi/packages/31/5d/b8b7af95b1472352c6dae0142c45cb2a982777e42286aa4e8fe0164ba323/py_ip2region-3.0.2-py3-none-any.whl", hash = "sha256:2eea0be77cf5c6066d905e9ea2285378357ed8a535902675b8e20f24c9c39a88" },
 ]
 
 [[package]]
@@ -1534,6 +1560,26 @@ wheels = [
 ]
 
 [[package]]
+name = "ua-parser"
+version = "1.0.2"
+source = { registry = "https://mirrors.aliyun.com/pypi/simple" }
+dependencies = [
+    { name = "ua-parser-builtins" },
+]
+sdist = { url = "https://mirrors.aliyun.com/pypi/packages/90/98/5e4b52d772a048af122a6fc5ce365c311efb9f5e79c55fd4fdd7c9f59e83/ua_parser-1.0.2.tar.gz", hash = "sha256:bab404ad42fb37f943107da2f6003ffc79724d11cc95076a7a539513371779da" }
+wheels = [
+    { url = "https://mirrors.aliyun.com/pypi/packages/a9/7c/6367995ff57aaa2d9e1055adbaec2519cf5a979780a83a93fdf8c6ec37be/ua_parser-1.0.2-py3-none-any.whl", hash = "sha256:0f8e6d0484af2a9ff804bba5a4fe696e87c028eaba98ad9a7dfae873fef7788a" },
+]
+
+[[package]]
+name = "ua-parser-builtins"
+version = "202606"
+source = { registry = "https://mirrors.aliyun.com/pypi/simple" }
+wheels = [
+    { url = "https://mirrors.aliyun.com/pypi/packages/51/a3/f26edd95a2ce2ffbf559da432e5ff544e8dcda3673d1c775f71afffb18b7/ua_parser_builtins-202606-py3-none-any.whl", hash = "sha256:13b483eb12a5419c1094ce02b7df705fefc6b5d869764b3ffbf6c940c6d014cb" },
+]
+
+[[package]]
 name = "ujson"
 version = "5.13.0"
 source = { registry = "https://mirrors.aliyun.com/pypi/simple" }
@@ -1640,6 +1686,18 @@ source = { registry = "https://mirrors.aliyun.com/pypi/simple" }
 sdist = { url = "https://mirrors.aliyun.com/pypi/packages/c5/52/fe421fb7364aa738b3506a2d99e4f3a56e079c0a798e9f4fa5e14c60922f/urllib3-1.26.14.tar.gz", hash = "sha256:076907bf8fd355cde77728471316625a4d2f7e713c125f51953bb5b3eecf4f72" }
 wheels = [
     { url = "https://mirrors.aliyun.com/pypi/packages/fe/ca/466766e20b767ddb9b951202542310cba37ea5f2d792dae7589f1741af58/urllib3-1.26.14-py2.py3-none-any.whl", hash = "sha256:75edcdc2f7d85b137124a6c3c9fc3933cdeaa12ecb9a6a959f22797a0feca7e1" },
+]
+
+[[package]]
+name = "user-agents"
+version = "2.2.0"
+source = { registry = "https://mirrors.aliyun.com/pypi/simple" }
+dependencies = [
+    { name = "ua-parser" },
+]
+sdist = { url = "https://mirrors.aliyun.com/pypi/packages/e3/e1/63c5bfb485a945010c8cbc7a52f85573561737648d36b30394248730a7bc/user-agents-2.2.0.tar.gz", hash = "sha256:d36d25178db65308d1458c5fa4ab39c9b2619377010130329f3955e7626ead26" }
+wheels = [
+    { url = "https://mirrors.aliyun.com/pypi/packages/8f/1c/20bb3d7b2bad56d881e3704131ddedbb16eb787101306887dff349064662/user_agents-2.2.0-py3-none-any.whl", hash = "sha256:a98c4dc72ecbc64812c4534108806fb0a0b3a11ec3fd1eafe807cee5b0a942e7" },
 ]
 
 [[package]]

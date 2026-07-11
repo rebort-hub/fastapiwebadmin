@@ -15,7 +15,7 @@ class User(Base):
     password = Column(Text, nullable=False, comment="密码")
     email = Column(String(64), nullable=True, comment="邮箱")
     roles = Column(JSON, nullable=False, comment="用户类型")
-    status = Column(Integer, nullable=False, comment="用户状态  1 锁定， 0 正常", default=0)
+    status = Column(Integer, nullable=False, comment="用户状态 1 启用，0 禁用", default=1)
     nickname = Column(String(255), nullable=False, comment="用户昵称")
     user_type = Column(Integer, nullable=False, comment="用户类型 10 管理人员, 20 测试人员", default=20)
     remarks = Column(String(255), nullable=False, comment="用户描述")
@@ -54,6 +54,13 @@ class User(Base):
     @classmethod
     async def get_user_by_name(cls, username: str):
         stmt = select(*cls.get_table_columns()).where(cls.username == username, cls.enabled_flag == 1)
+        return await cls.get_result(stmt, True)
+
+    @classmethod
+    async def get_user_by_email(cls, email: str):
+        if not email:
+            return None
+        stmt = select(*cls.get_table_columns()).where(cls.email == email, cls.enabled_flag == 1)
         return await cls.get_result(stmt, True)
 
     @classmethod

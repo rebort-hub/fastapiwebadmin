@@ -90,11 +90,87 @@ class Settings(BaseSettings):
     # ================================================= #
     SECRET_KEY: str = "kPBDjVk0o3Y1wLxdODxBpjwEjo7-Euegg4kdnzFIRjc"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24
-    WHITE_ROUTER: list[str] = [
-        "/api/user/login",
+    CAPTCHA_ENABLE: bool = True
+    CAPTCHA_EXPIRE_SECONDS: int = 300
+    REGISTER_ENABLE: bool = True
+    REGISTER_EMAIL_CODE_ENABLE: bool = True
+    REGISTER_DEFAULT_ROLE_IDS: list[int] = [1]
+    REGISTER_DEFAULT_DEPT_ID: int | None = None
+    EMAIL_HOST: str = ""
+    EMAIL_PORT: int = 465
+    EMAIL_USERNAME: str = ""
+    EMAIL_PASSWORD: str = ""
+    EMAIL_FROM_ADDR: str = ""
+    EMAIL_FROM_NAME: str = ""
+    EMAIL_USE_SSL: bool = True
+    EMAIL_CODE_EXPIRE_SECONDS: int = 120
+    IP_LOCATION_ENABLED: bool = True
+    OPERATION_LOG_RECORD: bool = True
+    OPERATION_RECORD_METHOD: list[str] = ["POST", "PUT", "DELETE"]
+    OPERATION_LOG_IGNORE_PATHS: list[str] = [
         "/api/health/health",
         "/api/health/readiness",
         "/api/health/info",
+        "/api/file/list",
+        "/api/loginRecord/list",
+        "/api/operationLog/list",
+    ]
+    # ---------- 文件存储 ----------
+    UPLOAD_STORAGE_TYPE: str = "local"
+    UPLOAD_MAX_SIZE_MB: int = 100
+    UPLOAD_ALLOWED_EXTENSIONS: str = (
+        "jpg,jpeg,png,gif,bmp,webp,svg,pdf,doc,docx,xls,xlsx,ppt,pptx,txt,md,csv,"
+        "zip,rar,7z,mp4,avi,mov,mp3,wav"
+    )
+    UPLOAD_LOCAL_PATH: str = ""
+    UPLOAD_URL_PREFIX: str = "/api/files"
+    ALIYUN_OSS_ACCESS_KEY: str = ""
+    ALIYUN_OSS_SECRET_KEY: str = ""
+    ALIYUN_OSS_BUCKET: str = ""
+    ALIYUN_OSS_ENDPOINT: str = ""
+    ALIYUN_OSS_DOMAIN: str = ""
+    TENCENT_COS_SECRET_ID: str = ""
+    TENCENT_COS_SECRET_KEY: str = ""
+    TENCENT_COS_BUCKET: str = ""
+    TENCENT_COS_REGION: str = ""
+    TENCENT_COS_DOMAIN: str = ""
+    QINIU_ACCESS_KEY: str = ""
+    QINIU_SECRET_KEY: str = ""
+    QINIU_BUCKET: str = ""
+    QINIU_DOMAIN: str = ""
+    MINIO_ENDPOINT: str = ""
+    MINIO_ACCESS_KEY: str = ""
+    MINIO_SECRET_KEY: str = ""
+    MINIO_BUCKET: str = ""
+    MINIO_SECURE: bool = False
+    OAUTH_DEFAULT_ROLE_IDS: list[int] = [1]
+    OAUTH_FRONTEND_FALLBACK: str = "http://127.0.0.1:3000/login"
+    OAUTH_GITHUB_CLIENT_ID: str = ""
+    OAUTH_GITHUB_CLIENT_SECRET: str = ""
+    OAUTH_GITEE_CLIENT_ID: str = ""
+    OAUTH_GITEE_CLIENT_SECRET: str = ""
+    OAUTH_WECHAT_OPEN_APP_ID: str = ""
+    OAUTH_WECHAT_OPEN_APP_SECRET: str = ""
+    OAUTH_QQ_APP_ID: str = ""
+    OAUTH_QQ_APP_SECRET: str = ""
+    WHITE_ROUTER: list[str] = [
+        "/api/user/login",
+        "/api/auth/captcha/get",
+        "/api/auth/register",
+        "/api/auth/code",
+        "/api/auth/forget-password",
+        "/api/auth/oauth/wechat/login",
+        "/api/auth/oauth/qq/login",
+        "/api/auth/oauth/github/login",
+        "/api/auth/oauth/gitee/login",
+        "/api/auth/oauth/wechat/callback",
+        "/api/auth/oauth/qq/callback",
+        "/api/auth/oauth/github/callback",
+        "/api/auth/oauth/gitee/callback",
+        "/api/health/health",
+        "/api/health/readiness",
+        "/api/health/info",
+        "/api/files",
         "/docs",
         "/redoc",
         "/openapi.json",
@@ -244,6 +320,14 @@ class Settings(BaseSettings):
         if self.REDIS_USER or self.REDIS_PASSWORD:
             auth = f"{self.REDIS_USER}:{self.REDIS_PASSWORD}@"
         return f"redis://{auth}{self.REDIS_HOST}:{self.REDIS_PORT}/{self.REDIS_DB_NAME}"
+
+    @property
+    def upload_local_dir(self) -> str:
+        return self.UPLOAD_LOCAL_PATH or str(FILES_DIR)
+
+    @property
+    def upload_allowed_ext_list(self) -> list[str]:
+        return [x.strip().lower() for x in self.UPLOAD_ALLOWED_EXTENSIONS.split(",") if x.strip()]
 
     @property
     def FASTAPI_CONFIG(self) -> dict[str, Any]:

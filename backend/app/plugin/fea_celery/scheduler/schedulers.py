@@ -92,7 +92,7 @@ class ModelEntry(ScheduleEntry):
             if value is None:
                 continue
             self.options[option] = value
-        self.options['__zero_timed_task_id'] = self.model.id
+        self.options['__fastapiwebadmin_timed_task_id'] = self.model.id
         self.total_run_count = model.total_run_count
         self.enabled = model.enabled
 

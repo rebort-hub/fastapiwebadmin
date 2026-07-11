@@ -18,6 +18,7 @@ from app.api.v1.system.login_record.model import UserLoginRecord
 from app.api.v1.system.user.schema import UserLogin, UserIn, UserResetPwd, UserDel, UserQuery, \
     UserLoginRecordIn, UserLoginRecordQuery
 from app.api.v1.system.menu.service import MenuService
+from app.api.v1.system.auth.service import CaptchaService
 from app.core.permission import PermissionService
 from app.utils.context import FastApiRequest
 from app.utils.current_user import current_user
@@ -30,6 +31,35 @@ class UserService:
     """用户类"""
 
     @staticmethod
+    async def create_login_session(user: typing.Union[User, typing.Dict[str, typing.Any]]) -> typing.Dict[str, typing.Any]:
+        """创建 Redis 登录会话。"""
+        if isinstance(user, User):
+            user_info = {
+                "id": user.id,
+                "username": user.username,
+                "nickname": user.nickname,
+                "roles": user.roles or [],
+                "tags": user.tags or [],
+            }
+        else:
+            user_info = user
+
+        token = str(uuid.uuid4())
+        login_time = default_serialize(datetime.now())
+        token_user_info = {
+            "id": user_info["id"],
+            "token": token,
+            "login_time": login_time,
+            "username": user_info["username"],
+            "nickname": user_info.get("nickname"),
+            "roles": user_info.get("roles") or [],
+            "tags": user_info.get("tags") or [],
+        }
+        await redis_pool.redis.set(TEST_USER_INFO.format(token), token_user_info, CACHE_DAY)
+        asyncio.create_task(UserService.login_record("login", token_user_info, token))
+        return token_user_info
+
+    @staticmethod
     async def login(params: UserLogin) -> typing.Dict[typing.Text, typing.Any]:
         """
         登录
@@ -39,38 +69,23 @@ class UserService:
         password = params.password
         if not username and not password:
             raise ValueError(CodeEnum.PARTNER_CODE_PARAMS_FAIL.msg)
+
+        await CaptchaService.verify_captcha(params.captcha_key, params.captcha)
+
         user_info = await User.get_user_by_name(username)
         if not user_info:
             raise ValueError(CodeEnum.WRONG_USER_NAME_OR_PASSWORD.msg)
-        
-        # 检查用户状态（兼容多种数据类型：0, False, '0'）
+
         user_status = user_info.get("status")
         if user_status in [0, False, '0', None]:
             raise ValueError('该账户已被禁用，请联系管理员！')
-        
-        # 使用 bcrypt 验证密码
+
         from app.utils.security import verify_password
         if not verify_password(password, user_info["password"]):
             raise ValueError(CodeEnum.WRONG_USER_NAME_OR_PASSWORD.msg)
-            
-        token = str(uuid.uuid4())
-        login_time = default_serialize(datetime.now())
-        tags = user_info.get("tags", None)
-        roles = user_info.get("roles", None)
-        token_user_info = {
-            "id": user_info["id"],
-            "token": token,
-            "login_time": login_time,
-            "username": user_info["username"],
-            "nickname": user_info["nickname"],
-            "roles": roles if roles else [],
-            "tags": tags if tags else []
-        }
-        await redis_pool.redis.set(TEST_USER_INFO.format(token), token_user_info, CACHE_DAY)
-        logger.info('用户 [{}] 登录了系统，状态: {}'.format(user_info["username"], user_status))
 
-        asyncio.create_task(UserService.login_record("login", token_user_info, token))
-        return token_user_info
+        logger.info('用户 [{}] 登录了系统，状态: {}'.format(user_info["username"], user_status))
+        return await UserService.create_login_session(user_info)
 
     @staticmethod
     async def logout():
@@ -89,10 +104,16 @@ class UserService:
     @staticmethod
     async def login_record(record_type: str, user_token_info: dict, token: str):
         try:
+            from app.utils.context import FastApiRequest
+            from app.utils.request_meta import resolve_client_ip, resolve_login_location, resolve_user_agent
+
+            request = FastApiRequest.get()
+            login_ip = resolve_client_ip(request)
+            browser, os_name = resolve_user_agent(request)
+            location = resolve_login_location(login_ip)
+            source_type = f"{browser} / {os_name}".strip(" /")
+
             if record_type == 'login':
-                login_ip = FastApiRequest.get().headers.get("X-Real-IP", None)
-                if not login_ip:
-                    login_ip = FastApiRequest.get().client.host
                 params = UserLoginRecordIn(
                     token=token,
                     code=user_token_info["username"],
@@ -101,7 +122,9 @@ class UserService:
                     login_type="password",
                     login_time=user_token_info['login_time'],
                     login_ip=login_ip,
-                    ret_code="0",  # 登录成功
+                    address=location,
+                    source_type=source_type or None,
+                    ret_code="0",
                     ret_msg="登录成功"
                 )
                 await UserLoginRecord.create_or_update(params.model_dump())

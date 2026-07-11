@@ -18,13 +18,15 @@ CACHE_WEEK = 60 * 60 * 24 * 7
 CACHE_MONTH = 60 * 60 * 24 * 30
 
 # Cache
-TEST_USER_INFO = 'zero:user_token:{0}'  # 用户token缓存
-TEST_EXECUTE_SET = 'zero:test_execute_set:case:{}'  # 用例执行集合
-TEST_EXECUTE_STATS = 'zero:test_execute_set:stats:{}'  # 用例执行统计
-TEST_EXECUTE_TASK = 'zero:test_execute_set:task:{}'  # 运行任务数
-TEST_EXECUTE_PARAMETER = 'zero:test_execute_set:extract_parameter:{}'  # 变量
-DATA_STRUCTURE_CASE_UPDATE = 'zero:data_structure:user:{}'  # 数据构造用户变更的接口信息
-TEST_USER_LOGIN_TIME = 'zero:user_login_time:{}'  # 数据构造用户变更的接口信息
+CAPTCHA_CODE = 'fastapiwebadmin:captcha:{0}'  # 登录验证码
+EMAIL_CODE = 'fastapiwebadmin:email_code:{0}-{1}'  # 邮箱验证码 mail-username
+TEST_USER_INFO = 'fastapiwebadmin:user_token:{0}'  # 用户token缓存
+TEST_EXECUTE_SET = 'fastapiwebadmin:test_execute_set:case:{}'  # 用例执行集合
+TEST_EXECUTE_STATS = 'fastapiwebadmin:test_execute_set:stats:{}'  # 用例执行统计
+TEST_EXECUTE_TASK = 'fastapiwebadmin:test_execute_set:task:{}'  # 运行任务数
+TEST_EXECUTE_PARAMETER = 'fastapiwebadmin:test_execute_set:extract_parameter:{}'  # 变量
+DATA_STRUCTURE_CASE_UPDATE = 'fastapiwebadmin:data_structure:user:{}'  # 数据构造用户变更的接口信息
+TEST_USER_LOGIN_TIME = 'fastapiwebadmin:user_login_time:{}'  # 数据构造用户变更的接口信息
 
 # 性能
 PREFORMANCE_RUN_STATUS = 'performance_test:status'

@@ -335,6 +335,8 @@ INSERT INTO `menu` VALUES (94, 77, '', '', '', '新增项目', 0, 0, '', 1, 0, 1
 INSERT INTO `menu` VALUES (95, 77, '', '', '', '编辑项目', 0, 0, '', 1, 0, 1, 'project:edit', 3, NULL, 20, '', '2026-01-17 16:28:32', '2026-01-17 18:02:51', 0, 0, 1, 1, NULL, NULL);
 INSERT INTO `menu` VALUES (96, 77, '', '', '', '删除项目', 0, 0, '', 1, 0, 1, 'project:delete', 4, NULL, 20, '', '2026-01-17 16:28:53', '2026-01-17 18:02:55', 0, 0, 1, 1, NULL, NULL);
 INSERT INTO `menu` VALUES (97, 76, '', '', '', '查询记录', 0, 0, '', 1, 0, 1, 'loginRecord:query', 1, NULL, 20, '', '2026-01-17 16:29:49', '2026-01-17 18:03:44', 0, 0, 1, 1, NULL, NULL);
+INSERT INTO `menu` VALUES (98, 0, '/system/operationLog', 'operationLog', 'system/operationLog/index', '操作日志', 0, 0, 'ele-Document', 1, 0, 0, 'admin', 61, NULL, 10, '', '2026-07-11 12:00:00', '2026-07-11 12:00:00', 1, 0, 1, 1, NULL, NULL);
+INSERT INTO `menu` VALUES (99, 98, '', '', '', '查询日志', 0, 0, '', 1, 0, 1, 'operationLog:query', 1, NULL, 20, '', '2026-07-11 12:00:00', '2026-07-11 12:00:00', 0, 0, 1, 1, NULL, NULL);
 
 -- ----------------------------
 -- Table structure for menu_view_history

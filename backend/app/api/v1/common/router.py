@@ -3,10 +3,11 @@
 
 from fastapi import APIRouter
 
-from .file.controller import FileRouter
+from .file.controller import FileAccessRouter, FileRouter
 from .health.controller import HealthRouter
 
 common_router = APIRouter()
 
 common_router.include_router(HealthRouter)
 common_router.include_router(FileRouter)
+common_router.include_router(FileAccessRouter)
