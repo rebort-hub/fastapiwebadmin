@@ -69,6 +69,18 @@ const viteConfig = defineConfig((mode: ConfigEnv) => {
           target: env.VITE_API_PROXY_TARGET || 'http://127.0.0.1:8100',
           changeOrigin: true,
         },
+        '/docs': {
+          target: env.VITE_API_PROXY_TARGET || 'http://127.0.0.1:8100',
+          changeOrigin: true,
+        },
+        '/redoc': {
+          target: env.VITE_API_PROXY_TARGET || 'http://127.0.0.1:8100',
+          changeOrigin: true,
+        },
+        '/openapi.json': {
+          target: env.VITE_API_PROXY_TARGET || 'http://127.0.0.1:8100',
+          changeOrigin: true,
+        },
       },
     },
     build: {

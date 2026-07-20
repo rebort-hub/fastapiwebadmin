@@ -11,13 +11,34 @@ export function useFileApi() {
       });
     },
     getList: (data: object) => {
-      return request({ url: '/file/list', method: 'POST', data });
+      return request({ 
+        url: '/file/list', 
+        method: 'POST', 
+        data 
+      });
     },
-    getStatistics: () => request({ url: '/file/statistics', method: 'GET' }),
-    getStorageConfig: () => request({ url: '/file/storage-config', method: 'GET' }),
-    deleted: (data: object) => request({ url: '/file/deleted', method: 'POST', data }),
-    deleteList: (data: object) => request({ url: '/file/deleteList', method: 'POST', data }),
-    download: (path: string) => request({ url: '/file/download/' + path, method: 'GET' }),
+    getStatistics: () => request({ 
+      url: '/file/statistics', 
+      method: 'GET' 
+    }),
+    getStorageConfig: () => request({ 
+      url: '/file/storage-config', 
+      method: 'GET' 
+    }),
+    deleted: (data: object) => request({ 
+      url: '/file/deleted', 
+      method: 'POST', 
+      data 
+    }),
+    deleteList: (data: object) => request({ 
+      url: '/file/deleteList', 
+      method: 'POST', 
+      data 
+    }),
+    download: (path: string) => request({ 
+      url: '/file/download/' + path, 
+      method: 'GET' 
+    }),
   };
 }
 

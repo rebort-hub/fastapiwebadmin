@@ -362,5 +362,6 @@ class UserService:
         parent_menus = await Menu.get_parent_id_by_ids(list(set(menu_ids)))
         menu_ids += [i["parent_id"] for i in parent_menus]
         all_menu = await Menu.get_menu_by_ids(list(set(menu_ids)))
+        all_menu = [menu for menu in all_menu if menu.get("menu_type") != 20]
         parent_menu = [menu for menu in all_menu if menu['parent_id'] == 0]
         return MenuService.menu_assembly(parent_menu, all_menu)

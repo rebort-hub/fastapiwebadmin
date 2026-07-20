@@ -11,7 +11,7 @@
  Target Server Version : 80042 (8.0.42)
  File Encoding         : 65001
 
- Date: 10/07/2026 17:28:19
+ Date: 20/07/2026 10:24:52
 */
 
 SET NAMES utf8mb4;
@@ -201,6 +201,11 @@ CREATE TABLE `file_info`  (
   `updated_by` bigint NULL DEFAULT NULL COMMENT '更新人ID',
   `enabled_flag` tinyint(1) NOT NULL COMMENT '是否删除, 0 删除 1 非删除',
   `trace_id` varchar(255) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NULL DEFAULT NULL COMMENT 'trace_id',
+  `storage_type` varchar(32) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NULL DEFAULT 'local' COMMENT '存储类型',
+  `file_url` varchar(1000) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NULL DEFAULT NULL COMMENT '访问URL',
+  `file_hash` varchar(64) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NULL DEFAULT NULL COMMENT '文件MD5',
+  `uploader_id` int NULL DEFAULT NULL COMMENT '上传者ID',
+  `uploader_name` varchar(64) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NULL DEFAULT NULL COMMENT '上传者',
   PRIMARY KEY (`id`) USING BTREE,
   INDEX `ix_file_info_extend_name`(`extend_name` ASC) USING BTREE
 ) ENGINE = InnoDB CHARACTER SET = utf8mb3 COLLATE = utf8mb3_general_ci ROW_FORMAT = DYNAMIC;
@@ -296,7 +301,7 @@ CREATE TABLE `menu`  (
   INDEX `ix_menu_icon`(`icon` ASC) USING BTREE,
   INDEX `ix_menu_name`(`name` ASC) USING BTREE,
   INDEX `ix_menu_title`(`title` ASC) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 98 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 109 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of menu
@@ -308,9 +313,9 @@ INSERT INTO `menu` VALUES (30, 28, '/system/user', 'systemUser', 'system/user/in
 INSERT INTO `menu` VALUES (31, 28, '/system/role', 'systemRole', 'system/role/index', '角色管理', 0, 0, 'ele-UserFilled', 1, 0, 0, 'admin', 1, NULL, 10, '', '2022-03-11 16:43:26', '2026-01-16 14:03:18', 1, 0, 1, 1, NULL, NULL);
 INSERT INTO `menu` VALUES (51, 28, '/system/lookup', 'systemLookup', 'system/lookup/index.vue', '数据字典', 0, 0, 'ele-Management', 1, 0, 0, 'admin', 3, NULL, 10, '', '2022-05-03 17:11:59', '2026-01-16 14:03:34', 1, 0, 1, 1, NULL, NULL);
 INSERT INTO `menu` VALUES (61, 28, '/system/personal', 'personal', 'system/personal/index', '个人中心', 0, 0, 'ele-User', 1, 0, 0, 'admin', 60, NULL, 10, '', '2023-01-16 16:37:40', '2026-01-17 15:49:51', 1, 3, 1, 1, NULL, NULL);
-INSERT INTO `menu` VALUES (63, 0, '/apiDoc', 'apiDoc', 'layout', '接口管理', 0, 0, 'ele-BellFilled', 1, 0, 0, 'admin', 90, NULL, 10, '/apiDoc/swagger', '2026-01-16 11:10:31', '2026-01-16 14:02:04', 1, 0, NULL, NULL, NULL, NULL);
-INSERT INTO `menu` VALUES (64, 63, '/apiDoc/swagger', 'apiDocSwagger', '/system/apiDoc/swagger', 'Swagger文档', 0, 0, 'ele-ChatLineSquare', 1, 0, 0, 'admin', 1, NULL, 10, '', '2026-01-16 11:13:22', '2026-01-16 14:02:12', 1, 0, NULL, NULL, NULL, NULL);
-INSERT INTO `menu` VALUES (65, 63, '/apiDoc/redoc', 'apiDocRedoc', '/system/apiDoc/redoc', 'Redoc文档', 0, 0, 'ele-CreditCard', 1, 0, 0, 'admin', 2, NULL, 10, '', '2026-01-16 11:15:28', '2026-01-16 14:02:20', 1, 0, NULL, NULL, NULL, NULL);
+INSERT INTO `menu` VALUES (63, 0, '/apiDoc', 'apiDoc', 'layout/routerView/parent', '接口管理', 0, 0, 'ele-BellFilled', 1, 0, 0, 'admin', 90, NULL, 10, '/apiDoc/swagger', '2026-01-16 11:10:31', '2026-01-16 14:02:04', 1, 0, NULL, NULL, NULL, NULL);
+INSERT INTO `menu` VALUES (64, 63, '/apiDoc/swagger', 'apiDocSwagger', 'system/apiDoc/swagger', 'Swagger文档', 0, 0, 'ele-ChatLineSquare', 1, 1, 0, 'admin', 1, NULL, 10, '', '2026-01-16 11:13:22', '2026-07-20 10:13:50', 1, 0, NULL, 1, NULL, NULL);
+INSERT INTO `menu` VALUES (65, 63, '/apiDoc/redoc', 'apiDocRedoc', '/redoc', 'Redoc文档', 0, 1, 'ele-CreditCard', 1, 0, 0, 'admin', 2, NULL, 10, '', '2026-01-16 11:15:28', '2026-07-20 10:19:36', 1, 0, NULL, 1, NULL, NULL);
 INSERT INTO `menu` VALUES (66, 28, '/system/file', 'systemFile', '/system/file/index', '文件管理', 0, 0, 'ele-DocumentCopy', 1, 0, 0, 'admin', 50, NULL, 10, '', '2026-01-16 11:39:11', '2026-01-16 14:03:52', 1, 0, NULL, NULL, NULL, NULL);
 INSERT INTO `menu` VALUES (67, 28, '/system/monitor', 'systemMonitor', '/system/monitor/index', '系统监控', 0, 0, 'ele-Platform', 1, 0, 0, '', 60, NULL, 10, '', '2026-01-16 11:41:17', '2026-01-16 13:47:00', 1, 0, NULL, NULL, NULL, NULL);
 INSERT INTO `menu` VALUES (76, 0, '/system/loginRecord', 'loginRecord', 'system/loginRecord/index', '系统登录记录', 0, 0, 'ele-ChatDotSquare', 1, 0, 0, 'admin', 60, NULL, 10, '', '2026-01-17 14:03:08', '2026-01-17 14:22:55', 1, 0, 1, 1, NULL, NULL);
@@ -326,7 +331,6 @@ INSERT INTO `menu` VALUES (85, 31, '', '', '', '查询角色', 0, 0, '', 1, 0, 1
 INSERT INTO `menu` VALUES (86, 31, '', '', '', '新增角色', 0, 0, '', 1, 0, 1, 'role:add', 2, NULL, 20, '', '2026-01-17 16:24:20', '2026-01-17 18:04:20', 0, 0, 1, 1, NULL, NULL);
 INSERT INTO `menu` VALUES (87, 31, '', '', '', '编辑角色', 0, 0, '', 1, 0, 1, 'role:edit', 3, NULL, 20, '', '2026-01-17 16:24:48', '2026-01-17 18:04:26', 0, 0, 1, 1, NULL, NULL);
 INSERT INTO `menu` VALUES (88, 31, '', '', '', '删除角色', 0, 0, '', 1, 0, 1, 'role:delete', 4, NULL, 20, '', '2026-01-17 16:25:22', '2026-01-17 18:04:32', 0, 0, 1, 1, NULL, NULL);
-INSERT INTO `menu` VALUES (100, 31, '', '', '', '分配权限', 0, 0, '', 1, 0, 1, 'role:permission', 5, NULL, 20, '', NOW(), NOW(), 0, 0, 1, 1, NULL, NULL);
 INSERT INTO `menu` VALUES (89, 78, '', '', '', '新增部门', 0, 0, '', 1, 0, 1, 'dept:add', 1, NULL, 20, '', '2026-01-17 16:26:02', '2026-01-17 18:03:52', 0, 0, 1, 1, NULL, NULL);
 INSERT INTO `menu` VALUES (90, 78, '', '', '', '编辑部门', 0, 0, '', 1, 0, 1, 'dept:edit', 2, NULL, 20, '', '2026-01-17 16:26:22', '2026-01-17 18:03:58', 0, 0, 1, 1, NULL, NULL);
 INSERT INTO `menu` VALUES (91, 78, '', '', '', '禁用部门', 0, 0, '', 1, 0, 1, 'dept:disable', 3, NULL, 20, '', '2026-01-17 16:26:54', '2026-01-17 18:04:03', 0, 0, 1, 1, NULL, NULL);
@@ -338,6 +342,15 @@ INSERT INTO `menu` VALUES (96, 77, '', '', '', '删除项目', 0, 0, '', 1, 0, 1
 INSERT INTO `menu` VALUES (97, 76, '', '', '', '查询记录', 0, 0, '', 1, 0, 1, 'loginRecord:query', 1, NULL, 20, '', '2026-01-17 16:29:49', '2026-01-17 18:03:44', 0, 0, 1, 1, NULL, NULL);
 INSERT INTO `menu` VALUES (98, 0, '/system/operationLog', 'operationLog', 'system/operationLog/index', '操作日志', 0, 0, 'ele-Document', 1, 0, 0, 'admin', 61, NULL, 10, '', '2026-07-11 12:00:00', '2026-07-11 12:00:00', 1, 0, 1, 1, NULL, NULL);
 INSERT INTO `menu` VALUES (99, 98, '', '', '', '查询日志', 0, 0, '', 1, 0, 1, 'operationLog:query', 1, NULL, 20, '', '2026-07-11 12:00:00', '2026-07-11 12:00:00', 0, 0, 1, 1, NULL, NULL);
+INSERT INTO `menu` VALUES (100, 31, '', '', '', '分配权限', 0, 0, '', 1, 0, 1, 'role:permission', 5, NULL, 20, '', '2026-07-20 09:30:56', '2026-07-20 09:30:56', 0, 0, 1, 1, NULL, NULL);
+INSERT INTO `menu` VALUES (101, 30, '', '', '', '新增用户', 0, 0, '', 1, 0, 1, 'user:add', 0, NULL, 20, '', '2026-07-20 09:40:49', '2026-07-20 09:40:49', 1, 0, 1, 1, NULL, NULL);
+INSERT INTO `menu` VALUES (102, 30, '', '', '', '编辑用户', 0, 0, '', 1, 0, 1, 'user:edit', 1, NULL, 20, '', '2026-07-20 09:51:18', '2026-07-20 09:51:18', 1, 0, 1, 1, NULL, NULL);
+INSERT INTO `menu` VALUES (103, 30, '', '', '', '删除用户', 0, 0, '', 1, 0, 1, 'user:delete', 2, NULL, 20, '', '2026-07-20 09:52:41', '2026-07-20 09:52:41', 1, 0, 1, 1, NULL, NULL);
+INSERT INTO `menu` VALUES (104, 30, '', '', '', '查询用户', 0, 0, '', 1, 0, 1, 'user:query', 3, NULL, 20, '', '2026-07-20 09:53:33', '2026-07-20 09:53:33', 1, 0, 1, 1, NULL, NULL);
+INSERT INTO `menu` VALUES (105, 30, '', '', '', '重置密码', 0, 0, '', 1, 0, 1, 'user:resetpwd', 4, NULL, 20, '', '2026-07-20 09:54:16', '2026-07-20 09:54:16', 1, 0, 1, 1, NULL, NULL);
+INSERT INTO `menu` VALUES (106, 31, '', '', '', '新增角色', 0, 0, '', 1, 0, 1, 'role:add', 0, NULL, 20, '', '2026-07-20 09:55:06', '2026-07-20 09:55:06', 1, 0, 1, 1, NULL, NULL);
+INSERT INTO `menu` VALUES (107, 31, '', '', '', '编辑角色', 0, 0, '', 1, 0, 1, 'role:edit', 1, NULL, 20, '', '2026-07-20 09:55:31', '2026-07-20 09:55:31', 1, 0, 1, 1, NULL, NULL);
+INSERT INTO `menu` VALUES (108, 78, '', '', '', '新增部门', 0, 0, '', 1, 0, 1, 'dept:add', 0, NULL, 20, '', '2026-07-20 10:05:31', '2026-07-20 10:05:31', 1, 0, 1, 1, NULL, NULL);
 
 -- ----------------------------
 -- Table structure for menu_view_history
@@ -412,6 +425,40 @@ CREATE TABLE `notify`  (
 -- ----------------------------
 
 -- ----------------------------
+-- Table structure for operation_log
+-- ----------------------------
+DROP TABLE IF EXISTS `operation_log`;
+CREATE TABLE `operation_log`  (
+  `user_id` int NULL DEFAULT NULL COMMENT '操作用户ID',
+  `username` varchar(64) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NULL DEFAULT NULL COMMENT '操作用户名',
+  `request_path` varchar(255) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NOT NULL COMMENT '请求路径',
+  `request_method` varchar(10) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NOT NULL COMMENT '请求方式',
+  `request_payload` text CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NULL COMMENT '请求参数',
+  `request_ip` varchar(50) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NULL DEFAULT NULL COMMENT '请求IP',
+  `location` varchar(255) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NULL DEFAULT NULL COMMENT '操作地址',
+  `browser` varchar(64) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NULL DEFAULT NULL COMMENT '浏览器',
+  `os_name` varchar(64) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NULL DEFAULT NULL COMMENT '操作系统',
+  `response_code` int NULL DEFAULT NULL COMMENT 'HTTP状态码',
+  `response_body` text CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NULL COMMENT '响应摘要',
+  `process_time` varchar(20) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NULL DEFAULT NULL COMMENT '耗时',
+  `description` varchar(255) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NULL DEFAULT NULL COMMENT '接口描述',
+  `status` int NULL DEFAULT NULL COMMENT '1成功 0失败',
+  `id` bigint NOT NULL AUTO_INCREMENT COMMENT '主键',
+  `creation_date` datetime NULL DEFAULT NULL COMMENT '创建时间',
+  `created_by` bigint NULL DEFAULT NULL COMMENT '创建人ID',
+  `updation_date` datetime NULL DEFAULT NULL COMMENT '更新时间',
+  `updated_by` bigint NULL DEFAULT NULL COMMENT '更新人ID',
+  `enabled_flag` tinyint(1) NOT NULL COMMENT '是否删除, 0 删除 1 非删除',
+  `trace_id` varchar(255) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NULL DEFAULT NULL COMMENT 'trace_id',
+  PRIMARY KEY (`id`) USING BTREE,
+  INDEX `ix_operation_log_user_id`(`user_id` ASC) USING BTREE
+) ENGINE = InnoDB AUTO_INCREMENT = 147 CHARACTER SET = utf8mb3 COLLATE = utf8mb3_general_ci ROW_FORMAT = DYNAMIC;
+
+-- ----------------------------
+-- Records of operation_log
+-- ----------------------------
+
+-- ----------------------------
 -- Table structure for project_info
 -- ----------------------------
 DROP TABLE IF EXISTS `project_info`;
@@ -467,6 +514,47 @@ CREATE TABLE `request_history`  (
 -- ----------------------------
 
 -- ----------------------------
+-- Table structure for role_depts
+-- ----------------------------
+DROP TABLE IF EXISTS `role_depts`;
+CREATE TABLE `role_depts`  (
+  `role_id` int NOT NULL COMMENT '角色ID',
+  `dept_id` int NOT NULL COMMENT '部门ID',
+  PRIMARY KEY (`role_id`, `dept_id`) USING BTREE
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '角色自定义数据权限部门' ROW_FORMAT = DYNAMIC;
+
+-- ----------------------------
+-- Records of role_depts
+-- ----------------------------
+
+-- ----------------------------
+-- Table structure for role_menus
+-- ----------------------------
+DROP TABLE IF EXISTS `role_menus`;
+CREATE TABLE `role_menus`  (
+  `role_id` int NOT NULL COMMENT '角色ID',
+  `menu_id` int NOT NULL COMMENT '菜单ID',
+  PRIMARY KEY (`role_id`, `menu_id`) USING BTREE,
+  INDEX `idx_role_menus_menu_id`(`menu_id` ASC) USING BTREE
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '角色菜单关联表' ROW_FORMAT = DYNAMIC;
+
+-- ----------------------------
+-- Records of role_menus
+-- ----------------------------
+INSERT INTO `role_menus` VALUES (1, 1);
+INSERT INTO `role_menus` VALUES (1, 29);
+INSERT INTO `role_menus` VALUES (1, 30);
+INSERT INTO `role_menus` VALUES (1, 31);
+INSERT INTO `role_menus` VALUES (1, 51);
+INSERT INTO `role_menus` VALUES (1, 61);
+INSERT INTO `role_menus` VALUES (1, 64);
+INSERT INTO `role_menus` VALUES (1, 65);
+INSERT INTO `role_menus` VALUES (1, 66);
+INSERT INTO `role_menus` VALUES (1, 67);
+INSERT INTO `role_menus` VALUES (1, 77);
+INSERT INTO `role_menus` VALUES (1, 100);
+
+-- ----------------------------
 -- Table structure for roles
 -- ----------------------------
 DROP TABLE IF EXISTS `roles`;
@@ -485,47 +573,13 @@ CREATE TABLE `roles`  (
   `dept_id` int NULL DEFAULT NULL COMMENT '部门ID',
   `data_scope` int NOT NULL DEFAULT 4 COMMENT '数据权限范围(1:仅本人 2:本部门 3:本部门及以下 4:全部 5:自定义)',
   PRIMARY KEY (`id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 15 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = DYNAMIC;
-
--- ----------------------------
--- Table structure for role_depts
--- ----------------------------
-DROP TABLE IF EXISTS `role_depts`;
-CREATE TABLE `role_depts`  (
-  `role_id` int NOT NULL COMMENT '角色ID',
-  `dept_id` int NOT NULL COMMENT '部门ID',
-  PRIMARY KEY (`role_id`, `dept_id`) USING BTREE
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '角色自定义数据权限部门' ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 16 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of roles
 -- ----------------------------
 INSERT INTO `roles` VALUES (1, '管理员', '管理员', 10, '2021-04-12 16:56:20', '2026-01-17 15:41:44', 1, 1, 1, 10, NULL, 1, 4);
-
--- ----------------------------
--- Table structure for user_roles
--- ----------------------------
-DROP TABLE IF EXISTS `user_roles`;
-CREATE TABLE `user_roles`  (
-  `user_id` bigint NOT NULL COMMENT '用户ID',
-  `role_id` int NOT NULL COMMENT '角色ID',
-  PRIMARY KEY (`user_id`, `role_id`) USING BTREE,
-  INDEX `idx_user_roles_role_id`(`role_id`) USING BTREE
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '用户角色关联表' ROW_FORMAT = DYNAMIC;
-
--- ----------------------------
--- Table structure for role_menus
--- ----------------------------
-DROP TABLE IF EXISTS `role_menus`;
-CREATE TABLE `role_menus`  (
-  `role_id` int NOT NULL COMMENT '角色ID',
-  `menu_id` int NOT NULL COMMENT '菜单ID',
-  PRIMARY KEY (`role_id`, `menu_id`) USING BTREE,
-  INDEX `idx_role_menus_menu_id`(`menu_id`) USING BTREE
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '角色菜单关联表' ROW_FORMAT = DYNAMIC;
-
-INSERT INTO `user_roles` VALUES (1, 1);
-INSERT INTO `role_menus` VALUES (1, 1), (1, 77), (1, 29), (1, 31), (1, 30), (1, 51), (1, 61), (1, 66), (1, 67), (1, 64), (1, 65), (1, 100);
+INSERT INTO `roles` VALUES (15, '', '0000', 10, '2026-07-20 09:59:57', '2026-07-20 09:59:57', 1, 1, 1, 10, NULL, 1, 4);
 
 -- ----------------------------
 -- Table structure for user
@@ -594,10 +648,26 @@ CREATE TABLE `user_login_record`  (
   INDEX `idx_login_record_ret_code`(`ret_code` ASC) USING BTREE,
   INDEX `idx_login_record_token`(`token` ASC) USING BTREE,
   INDEX `idx_login_record_code_logintime`(`code` ASC, `login_time` ASC) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 109 CHARACTER SET = utf8mb3 COLLATE = utf8mb3_general_ci ROW_FORMAT = DYNAMIC;
+) ENGINE = InnoDB AUTO_INCREMENT = 119 CHARACTER SET = utf8mb3 COLLATE = utf8mb3_general_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of user_login_record
 -- ----------------------------
+
+-- ----------------------------
+-- Table structure for user_roles
+-- ----------------------------
+DROP TABLE IF EXISTS `user_roles`;
+CREATE TABLE `user_roles`  (
+  `user_id` bigint NOT NULL COMMENT '用户ID',
+  `role_id` int NOT NULL COMMENT '角色ID',
+  PRIMARY KEY (`user_id`, `role_id`) USING BTREE,
+  INDEX `idx_user_roles_role_id`(`role_id` ASC) USING BTREE
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '用户角色关联表' ROW_FORMAT = DYNAMIC;
+
+-- ----------------------------
+-- Records of user_roles
+-- ----------------------------
+INSERT INTO `user_roles` VALUES (1, 1);
 
 SET FOREIGN_KEY_CHECKS = 1;

@@ -10,9 +10,9 @@
           <el-col :xs="24" :sm="24" :md="24" :lg="24" :xl="24" class="mb20">
             <el-form-item label="上级菜单" prop="parent_id">
               <el-select v-model="state.form.parent_id" clearable placeholder="Select">
-                <el-option :value="0" label="根目录"></el-option>
+                <el-option v-if="state.form.menu_type === 10" :value="0" label="根目录"></el-option>
                 <el-option
-                    v-for="item in allMenuList"
+                    v-for="item in parentMenuOptions"
                     :key="item.id"
                     :label="item.title"
                     :value="item.id"
@@ -139,7 +139,7 @@
 
 <script lang="ts" setup>
 defineOptions({ name: 'SaveOrUpdateMenu' })
-import {onMounted, reactive} from 'vue';
+import {computed, onMounted, reactive, watch} from 'vue';
 import IconSelector from '/@/components/iconSelector/index.vue';
 import {useMenuApi} from "/@/api/useSystemApi/menu";
 import {ElMessage} from "element-plus";
@@ -191,6 +191,25 @@ const state = reactive({
   },
   menuData: [], // 上级菜单数据
 });
+
+// 上级菜单仅可选 menu_type=10 的菜单项，按钮权限不能作为父级
+const parentMenuOptions = computed(() => {
+  const list = (props.allMenuList as Array<{ id?: number; menu_type?: number; title?: string }>) || [];
+  return list.filter((item) => item.menu_type !== 20 && item.id !== state.form.id);
+});
+
+watch(
+  () => state.form.menu_type,
+  (menuType) => {
+    if (menuType !== 20) return;
+    const parent = (props.allMenuList as Array<{ id?: number; menu_type?: number }>)?.find(
+      (item) => item.id === state.form.parent_id
+    );
+    if (!state.form.parent_id || parent?.menu_type === 20) {
+      state.form.parent_id = null as any;
+    }
+  }
+);
 // 创建表单
 
 // 打开弹窗

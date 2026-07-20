@@ -37,6 +37,15 @@ class MenuService:
             if menu_info.title != params.title and await Menu.get_menu_by_title(params.title):
                 raise ValueError('用户名已存在！')
 
+        if params.menu_type == 20 and (not params.parent_id or params.parent_id == 0):
+            raise ValueError('按钮权限必须挂载在菜单下！')
+        if params.parent_id:
+            parent_menu = await Menu.get(params.parent_id)
+            if not parent_menu:
+                raise ValueError('上级菜单不存在！')
+            if parent_menu.menu_type == 20:
+                raise ValueError('按钮权限不能作为上级菜单！')
+
         result = await Menu.create_or_update(params.dict(), to_dict=True)
         logger.info(f"菜单保存/更新成功: {result}")
         return result
